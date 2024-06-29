@@ -1,0 +1,3 @@
+[submodule "plugins/raven-hass-plugin"]
+	path = plugins/raven-hass-plugin
+	url = https://github.com/raven-automation/raven-hass-plugin.git

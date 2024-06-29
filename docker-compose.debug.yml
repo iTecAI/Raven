@@ -12,6 +12,7 @@ services:
       - ./data:/raven/data
       - /mnt/remotes/batocera/userdata:/userdata
       - ./config.dev.toml:/raven/config.toml
+      - ./plugins:/raven/plugins
     depends_on:
       - mongo
       - redis

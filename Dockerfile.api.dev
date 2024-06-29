@@ -4,6 +4,7 @@ RUN apk update && apk add git
 RUN mkdir -p /raven/raven_api /raven/certs
 VOLUME /raven/raven_api
 VOLUME /raven/data
+VOLUME /raven/plugins
 VOLUME /userdata
 VOLUME /raven/config.toml
 COPY ./requirements.txt /raven

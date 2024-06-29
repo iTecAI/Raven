@@ -1,0 +1,60 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api.dev
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./raven_api:/raven/raven_api
+      - ./data:/raven/data
+      - /mnt/remotes/batocera/userdata:/userdata
+      - ./config.dev.toml:/raven/config.toml
+    depends_on:
+      - mongo
+      - redis
+    develop:
+      watch:
+        - action: rebuild
+          path: ./requirements.txt
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client.dev
+
+    ports:
+      - "5173:5173"
+
+    volumes:
+      - ./raven_client:/raven/raven_client
+
+    depends_on:
+      - api
+    develop:
+      watch:
+        - action: rebuild
+          path: ./raven_client/package.json
+
+  mongo:
+    image: mongo:jammy
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: raven
+      MONGO_INITDB_ROOT_PASSWORD: raven
+    volumes:
+      - ./vols/mongo/data:/data/db
+    ports:
+      - 27017:27017
+
+  redis:
+    image: redis/redis-stack-server:7.2.0-v9
+    restart: always
+    volumes:
+      - ./vols/redis/data:/data
+    ports:
+      - 6379:6379
+    environment:
+      - "REDIS_ARGS=--requirepass raven"

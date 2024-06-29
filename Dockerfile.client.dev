@@ -1,0 +1,11 @@
+FROM node:21-alpine
+
+RUN mkdir -p /raven/raven_client /raven/certs
+VOLUME /raven/raven_client
+EXPOSE 5173/tcp
+COPY ./raven_client/package.json /raven/raven_client
+COPY ./certs /raven/certs
+WORKDIR /raven/raven_client
+RUN yarn install
+
+ENTRYPOINT [ "yarn", "dev", "--host" ]

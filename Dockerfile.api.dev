@@ -1,0 +1,15 @@
+FROM python:3.12.2-alpine
+
+RUN apk update && apk add git
+RUN mkdir -p /raven/raven_api /raven/certs
+VOLUME /raven/raven_api
+VOLUME /raven/data
+VOLUME /userdata
+VOLUME /raven/config.toml
+COPY ./requirements.txt /raven
+COPY ./certs /raven/certs
+WORKDIR /raven
+RUN python -m pip install -r requirements.txt --upgrade --no-cache
+EXPOSE 8000/tcp
+
+ENTRYPOINT [ "litestar", "--app", "raven_api:app", "run", "--reload", "--host", "0.0.0.0", "--ssl-certfile", "/raven/certs/api/cert.pem", "--ssl-keyfile", "/raven/certs/api/key.pem", "--reload-include", "config.toml" ]

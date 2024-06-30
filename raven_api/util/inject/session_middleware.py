@@ -22,10 +22,10 @@ class CookieSessionManager(MiddlewareProtocol):
             )
             if active_token:
                 scope["token"] = active_token
-                active_token.save()
+                await active_token.save()
             else:
                 new_session = Session.create()
-                new_session.save()
+                await new_session.save()
                 scope["token"] = new_session
 
             async def send_wrapper(message: Message) -> None:

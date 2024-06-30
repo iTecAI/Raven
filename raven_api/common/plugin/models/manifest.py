@@ -50,5 +50,5 @@ class PluginManifest(BaseModel):
     description: str | None = None
     icon: str | None = None
     dependencies: list[PluginDependency] = []
-    module: str
+    entrypoint: str
     exports: dict[str, EXPORTS] = {}

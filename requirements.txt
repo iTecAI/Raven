@@ -1,6 +1,7 @@
 litestar[standard]
 pydantic
 uvicorn
+git+https://github.com/raven-automation/raven-hass.git
 beanie
 motor
 redis

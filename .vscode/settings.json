@@ -1,3 +1,7 @@
 {
-    "git.ignoreSubmodules": true
+    "git.ignoreSubmodules": true,
+    "python.analysis.extraPaths": [
+        "raven_api"
+    ],
+    "python.REPL.enableREPLSmartSend": false
 }

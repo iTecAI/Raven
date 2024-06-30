@@ -3,11 +3,12 @@ import tomllib
 from typing import AsyncGenerator
 from litestar import Litestar, get
 from datetime import datetime
-from .common.models import Config, DOCUMENT_MODELS
-from .util import PluginLoader, Context
+from .common.models import Config, DOCUMENT_MODELS, Session
+from .util import PluginLoader, Context, CookieSessionManager, provide_session
 from redis.asyncio import Redis
 from litestar.channels import ChannelsPlugin
 from litestar.channels.backends.redis import RedisChannelsPubSubBackend
+from litestar.di import Provide
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 from litestar.datastructures import State
@@ -39,8 +40,8 @@ async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
 
 
 @get("/")
-async def get_root() -> datetime:
-    return datetime.now()
+async def get_root(session: Session) -> Session:
+    return session
 
 
 app = Litestar(
@@ -55,4 +56,6 @@ app = Litestar(
         )
     ],
     state=State({}),
+    dependencies={"session": Provide(provide_session)},
+    middleware=[CookieSessionManager],
 )

@@ -5,3 +5,5 @@ git+https://github.com/raven-automation/raven-hass.git
 beanie
 motor
 redis
+passlib
+argon2_cffi

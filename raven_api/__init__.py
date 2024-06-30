@@ -1,10 +1,9 @@
 from contextlib import asynccontextmanager
-import logging
 import tomllib
 from typing import AsyncGenerator
 from litestar import Litestar, get
 from datetime import datetime
-from .common.models import Config
+from .common.models import Config, DOCUMENT_MODELS
 from .util import PluginLoader, Context
 from redis.asyncio import Redis
 from litestar.channels import ChannelsPlugin
@@ -25,7 +24,10 @@ async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
     plugins = PluginLoader(CONFIG)
     async with plugins.resolve_lifecycle() as lifecycle:
         mongo_client = AsyncIOMotorClient(CONFIG.storage.mongo.url)
-        await init_beanie(database=CONFIG.storage.mongo.database, document_models=[])
+        await init_beanie(
+            database=mongo_client.get_database(CONFIG.storage.mongo.database),
+            document_models=DOCUMENT_MODELS,
+        )
         context = Context(
             CONFIG,
             plugins,

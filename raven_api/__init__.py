@@ -3,7 +3,7 @@ import tomllib
 from typing import AsyncGenerator
 from litestar import Litestar, get
 from datetime import datetime
-from .common.models import Config, DOCUMENT_MODELS, Session
+from .common.models import Config, DOCUMENT_MODELS, Session, AuthState
 from .util import PluginLoader, Context, CookieSessionManager, provide_session
 from redis.asyncio import Redis
 from litestar.channels import ChannelsPlugin
@@ -46,8 +46,8 @@ async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
 
 
 @get("/")
-async def get_root(session: Session) -> Session:
-    return session
+async def get_root(session: Session) -> AuthState:
+    return await session.get_authstate()
 
 
 app = Litestar(

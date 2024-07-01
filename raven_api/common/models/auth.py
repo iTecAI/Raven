@@ -1,7 +1,13 @@
 from datetime import datetime, UTC
 from passlib.hash import argon2
 from beanie import ValidateOnSave, before_event
+from pydantic import BaseModel
 from .base import BaseObject
+
+
+class RedactedUser(BaseModel):
+    id: str
+    username: str
 
 
 class Session(BaseObject):
@@ -24,6 +30,10 @@ class Session(BaseObject):
             return await User.get(self.user_id)
         return None
 
+    async def get_authstate(self) -> "AuthState":
+        user = await self.user()
+        return AuthState(session=self, user=user.redacted if user else None)
+
 
 class User(BaseObject):
     username: str
@@ -42,3 +52,15 @@ class User(BaseObject):
 
     async def sessions(self) -> list[Session]:
         return await Session.find(Session.user_id == self.id).to_list()
+
+    def verify(self, password: str) -> bool:
+        return argon2.verify(password, self.password)
+
+    @property
+    def redacted(self) -> RedactedUser:
+        return RedactedUser(id=self.id, username=self.username)
+
+
+class AuthState(BaseModel):
+    session: Session
+    user: RedactedUser | None

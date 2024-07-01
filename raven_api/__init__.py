@@ -1,10 +1,9 @@
 from contextlib import asynccontextmanager
 import tomllib
 from typing import AsyncGenerator
-from litestar import Litestar, get
-from datetime import datetime
-from .common.models import Config, DOCUMENT_MODELS, Session, AuthState
-from .util import PluginLoader, Context, CookieSessionManager, provide_session
+from litestar import Litestar
+from .common.models import Config, DOCUMENT_MODELS
+from .util import *
 from redis.asyncio import Redis
 from litestar.channels import ChannelsPlugin
 from litestar.channels.backends.redis import RedisChannelsPubSubBackend
@@ -13,6 +12,8 @@ from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 from litestar.datastructures import State
 from litestar.logging import LoggingConfig
+from .controllers import API_ROUTER
+
 
 with open("./config.toml", "rb") as config_file:
     CONFIG = Config(**tomllib.load(config_file))
@@ -45,13 +46,8 @@ async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
         yield
 
 
-@get("/")
-async def get_root(session: Session) -> AuthState:
-    return await session.get_authstate()
-
-
 app = Litestar(
-    route_handlers=[get_root],
+    route_handlers=[API_ROUTER],
     lifespan=[app_lifecycle],
     plugins=[
         ChannelsPlugin(
@@ -62,7 +58,13 @@ app = Litestar(
         )
     ],
     state=State({}),
-    dependencies={"session": Provide(provide_session)},
+    dependencies={
+        "session": Provide(provide_session),
+        "context": Provide(provide_context),
+        "config": Provide(provide_config),
+        "lifecycle": Provide(provide_lifcycle),
+        "plugins": Provide(provide_plugins),
+    },
     middleware=[CookieSessionManager],
     logging_config=app_logs,
 )

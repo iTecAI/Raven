@@ -62,6 +62,10 @@ class PluginLoader:
         self.lifecycle = LifecycleContext()
         self.plugins = self._load_plugins()
 
+    @property
+    def manifests(self) -> list[PluginManifest]:
+        return [i["manifest"] for i in self.plugins.values()]
+
     def _load_plugins(self) -> dict[str, PluginRecord]:
         self.logger.info("Loading plugins...")
         manifests: dict[str, PluginRecord] = {}

@@ -7,7 +7,6 @@ class PluginDependency(BaseModel):
     name: str
     ref: str
     source: Literal["git", "pip"] | None = None
-    cache: bool = False
 
 
 class BaseExport(BaseModel):

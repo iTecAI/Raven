@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import json
+from logging import Logger
 import os
 from traceback import print_exc
 from types import ModuleType
@@ -9,6 +10,7 @@ from ..common.plugin import PluginManifest, LifecycleExport, LifecycleContext
 from ..common.models import Config
 import importlib.util
 import sys
+import subprocess
 
 
 class LifecycleRecord(TypedDict):
@@ -54,14 +56,17 @@ class PluginRecord(TypedDict):
 
 class PluginLoader:
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, logger: Logger):
         self.config = config
+        self.logger = logger
         self.lifecycle = LifecycleContext()
-        self.manifests = self._load_plugins()
+        self.plugins = self._load_plugins()
 
     def _load_plugins(self) -> dict[str, PluginRecord]:
+        self.logger.info("Loading plugins...")
         manifests: dict[str, PluginRecord] = {}
         for folder in os.listdir("plugins"):
+            self.logger.debug(f"Checking folder {folder}")
             if os.path.isdir(os.path.join("plugins", folder)):
                 if os.path.exists(os.path.join("plugins", folder, "manifest.json")):
                     try:
@@ -73,6 +78,18 @@ class PluginLoader:
                         raise RuntimeError(
                             f"Failed to load plugin manifest in folder {folder}"
                         )
+
+                    self.logger.debug(f"Loaded plugin manifest for {manifest.slug}")
+
+                    deps = [i.ref for i in manifest.dependencies]
+                    self.logger.debug(
+                        f"Installing plugin dependencies: [{', '.join(deps)}]"
+                    )
+                    subprocess.run(
+                        [sys.executable, "-m", "pip", "install", *deps],
+                        check=True,
+                        capture_output=True,
+                    )
 
                     spec = importlib.util.spec_from_file_location(
                         f"raven_plugins.{manifest.slug}",
@@ -92,7 +109,7 @@ class PluginLoader:
     @asynccontextmanager
     async def resolve_lifecycle(self):
         lifecycle_records: list[LifecycleRecord] = []
-        for plugin in self.manifests.values():
+        for plugin in self.plugins.values():
             for export in plugin["manifest"].exports.values():
                 if export.type == "lifecycle":
                     lifecycle_records.append(

@@ -12,17 +12,23 @@ from litestar.di import Provide
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 from litestar.datastructures import State
+from litestar.logging import LoggingConfig
 
 with open("./config.toml", "rb") as config_file:
     CONFIG = Config(**tomllib.load(config_file))
 
 REDIS = Redis(host=CONFIG.storage.redis.url)
 
+app_logs = LoggingConfig(
+    root={"level": CONFIG.logging.level, "handlers": ["console"]},
+    formatters={"standard": {"format": CONFIG.logging.format}},
+)
+
 
 @asynccontextmanager
 async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
-
-    plugins = PluginLoader(CONFIG)
+    app.logger.info("Initializing lifecycle...")
+    plugins = PluginLoader(CONFIG, app.logger)
     async with plugins.resolve_lifecycle() as lifecycle:
         mongo_client = AsyncIOMotorClient(CONFIG.storage.mongo.url)
         await init_beanie(
@@ -58,4 +64,5 @@ app = Litestar(
     state=State({}),
     dependencies={"session": Provide(provide_session)},
     middleware=[CookieSessionManager],
+    logging_config=app_logs,
 )

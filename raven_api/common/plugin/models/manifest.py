@@ -41,7 +41,13 @@ class LifecycleExport(BaseExport):
     is_async: bool = False
 
 
-EXPORTS = LifecycleExport
+class ResourceExport(BaseExport):
+    type: Literal["resource"]
+    is_async: bool = False
+    kwargs: dict[str, str | Literal["config"]] = {}
+
+
+EXPORTS = LifecycleExport | ResourceExport
 
 class PluginManifest(BaseModel):
     slug: str

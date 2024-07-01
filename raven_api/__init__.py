@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 import tomllib
 from typing import AsyncGenerator
-from litestar import Litestar
+from litestar import Litestar, MediaType, Request, Response
+from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 from .common.models import Config, DOCUMENT_MODELS
 from .util import *
 from redis.asyncio import Redis
@@ -46,6 +47,18 @@ async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
         yield
 
 
+def plain_text_exception_handler(req: Request, exc: Exception) -> Response:
+    """Default handler for exceptions subclassed from HTTPException."""
+    status_code = getattr(exc, "status_code", HTTP_500_INTERNAL_SERVER_ERROR)
+    detail = getattr(exc, "detail", "")
+    req.logger.exception("Encountered a server error:")
+    return Response(
+        media_type=MediaType.TEXT,
+        content=detail,
+        status_code=status_code,
+    )
+
+
 app = Litestar(
     route_handlers=[API_ROUTER],
     lifespan=[app_lifecycle],
@@ -67,4 +80,5 @@ app = Litestar(
     },
     middleware=[CookieSessionManager],
     logging_config=app_logs,
+    exception_handlers={500: plain_text_exception_handler},
 )

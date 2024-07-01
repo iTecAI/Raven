@@ -4,9 +4,15 @@ from logging import Logger
 import os
 from traceback import print_exc
 from types import ModuleType
-from typing import TypedDict
+from typing import Any, Callable, TypedDict
 from pydantic import BaseModel
-from ..common.plugin import PluginManifest, LifecycleExport, LifecycleContext
+from ..common.plugin import (
+    PluginManifest,
+    LifecycleExport,
+    LifecycleContext,
+    EXPORTS,
+    ResourceExport,
+)
 from ..common.models import Config
 import importlib.util
 import sys
@@ -129,3 +135,34 @@ class PluginLoader:
 
         async with nest_lifecycle(self.lifecycle, lifecycle_records) as context:
             yield context
+
+    @property
+    def exports(self) -> dict[tuple[str, str], EXPORTS]:
+        results = {}
+        for plugin in self.plugins.values():
+            for export_name, export_data in plugin["manifest"].exports.items():
+                results[(plugin["manifest"].slug, export_name)] = export_data
+        return results
+
+    def resources(self, plugin_name: str) -> dict[str, ResourceExport]:
+        return {
+            k[1]: v
+            for k, v in self.exports.items()
+            if k[0] == plugin_name and v.type == "resource"
+        }
+
+    def resolve_export(self, plugin_name: str, export: EXPORTS) -> Any:
+        return export.resolve(self.plugins[plugin_name]["module"])
+
+    async def call_resource(
+        self, plugin_name: str, export_name: str, exported: Callable
+    ) -> Any:
+        resource = self.resources(plugin_name).get(export_name, None)
+        if not resource:
+            raise KeyError
+        kwargs = {
+            k: self.lifecycle.get(plugin_name, v) for k, v in resource.kwargs.items()
+        }
+        if resource.is_async:
+            return await exported(**kwargs)
+        return exported(**kwargs)

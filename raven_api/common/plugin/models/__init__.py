@@ -3,6 +3,7 @@ from .manifest import (
     PluginManifest,
     BaseExport,
     LifecycleExport,
+    ResourceExport,
     EXPORTS,
 )
 from .lifecycle import LifecycleContext

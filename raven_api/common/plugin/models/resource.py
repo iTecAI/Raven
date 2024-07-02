@@ -4,15 +4,31 @@ from pydantic import BaseModel
 
 
 class ResourcePropertyType(StrEnum):
-    OBJECT = "object"
-    TEXT = "text"
-    NUMBER = "number"
-    DATE = "date"
-    TIME = "time"
-    DATETIME = "datetime"
-    COLOR = "color"
-    OPTION = "option"
-    LIST = "list"
+    OBJECT = "object", 0
+    TEXT = "text", 1
+    NUMBER = "number", 1
+    BOOLEAN = "boolean", 2
+    DATE = "date", 2
+    TIME = "time", 2
+    DATETIME = "datetime", 2
+    COLOR = "color", 2
+    OPTION = "option", 2
+    LIST = "list", 1
+
+    def __new__(cls, *args, **kwds):
+        obj = str.__new__(cls)
+        obj._value_ = args[0]
+        return obj
+
+    def __init__(self, _: str, priority: int = 0):
+        self._priority_ = priority
+
+    def __str__(self) -> str:
+        return self.value
+
+    @property
+    def priority(self):
+        return self._priority_
 
 
 class ResourceProperty[T](BaseModel):
@@ -22,6 +38,7 @@ class ResourceProperty[T](BaseModel):
     icon: str | None = None
     suffix: str | None = None
     prefix: str | None = None
+    hidden: bool = False
 
 
 class ResourceMetadata(BaseModel):

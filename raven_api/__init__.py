@@ -15,6 +15,8 @@ from litestar.datastructures import State
 from litestar.logging import LoggingConfig
 from .controllers import API_ROUTER
 
+sys.path.append("./raven_api")
+
 
 with open("./config.toml", "rb") as config_file:
     CONFIG = Config(**tomllib.load(config_file))

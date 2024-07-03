@@ -1,7 +1,7 @@
-from litestar import Controller, post
+from litestar import Controller, get, post
 from pydantic import BaseModel
-from ..common.models import Session, User, RedactedUser, Config
-from ..util import guard_logged_in, provide_user
+from ..common.models import Session, User, RedactedUser, Config, Scope
+from ..util import guard_logged_in, provide_user, Context
 from litestar.exceptions import NotFoundException, MethodNotAllowedException
 from litestar.di import Provide
 
@@ -47,3 +47,7 @@ class AuthController(Controller):
     async def logout(self, session: Session) -> None:
         session.user_id = None
         await session.save()
+
+    @get(path="/scopes", guards=[guard_logged_in])
+    async def get_scopes(self, context: Context) -> dict[str, Scope]:
+        return context.scopes

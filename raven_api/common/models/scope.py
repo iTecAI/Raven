@@ -90,5 +90,25 @@ CORE_SCOPE: dict[str, MinimalScope] = {
                 },
             }
         },
-    }
+    },
+    "resources": {
+        "display_name": "Resources",
+        "children": {
+            "all": {
+                "display_name": "All Resources",
+                "children": {
+                    "view": {"display_name": "View"},
+                    "execute": {"display_name": "Execute"},
+                },
+            },
+            "plugin": {"display_name": "Plugin-Specific"},
+        },
+    },
+    "pipelines": {
+        "display_name": "Pipelines",
+        "children": {
+            "view": {"display_name": "View"},
+            "manage": {"display_name": "Manage"},
+        },
+    },
 }

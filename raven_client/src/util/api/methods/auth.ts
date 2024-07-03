@@ -40,6 +40,7 @@ export function AuthMixin<TBase extends MixinConstructor>(base: TBase) {
             await this.request<void>("/auth/logout", {
                 method: "post",
             });
+            await this.reload();
         }
     };
 }

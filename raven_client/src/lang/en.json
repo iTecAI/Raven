@@ -1,5 +1,45 @@
 {
   "common": {
-    "appName": "Raven"
+    "appName": "Raven",
+    "notifications": {
+      "success": "Success!",
+      "info": "Notice:",
+      "warning": "Warning:",
+      "error": "Error:"
+    }
+  },
+  "errors": {
+    "form": {
+      "field_required": "{{field}} is a required field."
+    }
+  },
+  "views": {
+    "auth": {
+      "form": {
+        "username": "Username",
+        "password": "Password",
+        "passwordConfirm": "Confirm Password"
+      },
+      "errors": {
+        "passwordMatch": "Passwords must match"
+      },
+      "mode": {
+        "login": {
+          "title": "Login",
+          "button": "Login",
+          "success": "Logged in!",
+          "error": "Incorrect username or password"
+        },
+        "create": {
+          "title": "Create Account",
+          "button": "Create",
+          "success": "Created account!",
+          "error": "Account creation failed."
+        }
+      }
+    },
+    "layout": {
+      "logout": "Log Out"
+    }
   }
 }

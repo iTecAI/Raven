@@ -1,6 +1,21 @@
 import { useDisclosure } from "@mantine/hooks";
-import { AppShell, Burger, Group, Text } from "@mantine/core";
-import { IconFeather } from "@tabler/icons-react";
+import {
+    ActionIcon,
+    AppShell,
+    Avatar,
+    Burger,
+    Button,
+    Divider,
+    Group,
+    Stack,
+    Text,
+} from "@mantine/core";
+import {
+    IconFeather,
+    IconLogout,
+    IconUser,
+    IconUserCog,
+} from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { AuthMixin, useApi } from "../../util/api";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +59,39 @@ export function Layout() {
                 </Group>
             </AppShell.Header>
 
-            <AppShell.Navbar className="app-nav" p="md"></AppShell.Navbar>
+            <AppShell.Navbar className="app-nav">
+                <Stack gap={0} className="nav-main">
+                    <Stack gap="sm" className="nav-links" p="sm"></Stack>
+                    <Divider />
+                    {auth?.user && (
+                        <Group
+                            gap="sm"
+                            wrap="nowrap"
+                            p="sm"
+                            justify="space-between"
+                        >
+                            <Group gap="sm">
+                                <Avatar size="md">
+                                    <IconUser />
+                                </Avatar>
+                                <Text>{auth.user.username}</Text>
+                            </Group>
+                            <Group gap="sm">
+                                <ActionIcon variant="light" size="lg">
+                                    <IconUserCog size={20} />
+                                </ActionIcon>
+                                <Button
+                                    rightSection={<IconLogout size={20} />}
+                                    variant="light"
+                                    onClick={() => api.logout()}
+                                >
+                                    {t("views.layout.logout")}
+                                </Button>
+                            </Group>
+                        </Group>
+                    )}
+                </Stack>
+            </AppShell.Navbar>
 
             <AppShell.Main className="app-main"></AppShell.Main>
         </AppShell>

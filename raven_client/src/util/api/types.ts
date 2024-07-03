@@ -51,7 +51,10 @@ export type ApiContextType =
       }
     | {
           state: "ready";
-          request: ApiRequestFunction;
+          request: <T>(
+              endpoint: string,
+              options?: ApiRequestOptions
+          ) => Promise<ApiResponse<T>>;
           reload: ApiReloadFunction;
           auth: AuthState;
       }

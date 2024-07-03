@@ -35,7 +35,8 @@
     "react-router-dom": "^6.24.0",
     "reactflow": "^11.11.4",
     "recharts": "2",
-    "use-custom-compare": "^1.4.0"
+    "use-custom-compare": "^1.4.0",
+    "utility-types": "^3.11.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.6",

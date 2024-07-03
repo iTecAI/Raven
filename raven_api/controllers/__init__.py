@@ -1,8 +1,9 @@
 from litestar import Router, get
 from .plugins import PluginsController
 from ..common.models import Session, AuthState
+from .auth import AuthController
 
-CONTROLLERS = [PluginsController]
+CONTROLLERS = [PluginsController, AuthController]
 
 
 @get("/")

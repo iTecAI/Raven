@@ -1,5 +1,7 @@
 from ..context import Context, Config, LifecycleContext, PluginLoader
+from ...common.models import User, Session
 from litestar.datastructures import State
+from litestar.exceptions import *
 
 
 async def provide_context(state: State) -> Context:
@@ -16,3 +18,9 @@ async def provide_lifcycle(context: Context) -> LifecycleContext:
 
 async def provide_plugins(context: Context) -> PluginLoader:
     return context.plugins
+
+
+async def provide_user(session: Session) -> User:
+    if not session.user_id:
+        raise NotAuthorizedException("Endpoint requires login")
+    return await session.user()

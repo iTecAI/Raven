@@ -8,6 +8,7 @@ from .base import BaseObject
 class RedactedUser(BaseModel):
     id: str
     username: str
+    admin: bool
 
 
 class Session(BaseObject):
@@ -38,6 +39,7 @@ class Session(BaseObject):
 class User(BaseObject):
     username: str
     password: str
+    admin: bool = False
 
     class Settings:
         name = "auth.user"
@@ -58,7 +60,7 @@ class User(BaseObject):
 
     @property
     def redacted(self) -> RedactedUser:
-        return RedactedUser(id=self.id, username=self.username)
+        return RedactedUser(id=self.id, username=self.username, admin=self.admin)
 
 
 class AuthState(BaseModel):

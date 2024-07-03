@@ -32,7 +32,18 @@ class LoggingConfig(BaseModel):
     format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 
+class AuthAdminConfig(BaseModel):
+    enabled: bool = False
+    username: str | None = None
+    password: str | None = None
+
+
+class AuthConfig(BaseModel):
+    admin: AuthAdminConfig | None = None
+
+
 class Config(BaseModel):
     storage: StorageConfig
     plugins: dict[str, dict] = {}
     logging: LoggingConfig = LoggingConfig()
+    auth: AuthConfig = AuthConfig()

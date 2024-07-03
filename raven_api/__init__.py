@@ -3,7 +3,7 @@ import tomllib
 from typing import AsyncGenerator
 from litestar import Litestar, MediaType, Request, Response
 from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
-from .common.models import Config, DOCUMENT_MODELS
+from .common.models import Config, DOCUMENT_MODELS, User
 from .util import *
 from redis.asyncio import Redis
 from litestar.channels import ChannelsPlugin
@@ -45,6 +45,19 @@ async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
             REDIS,
             mongo_client.get_database(CONFIG.storage.mongo.database),
         )
+
+        if CONFIG.auth.admin.enabled:
+            existing = await User.from_username(CONFIG.auth.admin.username)
+            if existing:
+                if not existing.admin:
+                    raise RuntimeError("Non-admin user exists with admin credentials.")
+            else:
+                created = User.create(
+                    CONFIG.auth.admin.username, CONFIG.auth.admin.password
+                )
+                created.admin = True
+                await created.save()
+
         app.state["context"] = context
         yield
 

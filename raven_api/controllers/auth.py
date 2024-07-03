@@ -1,6 +1,6 @@
 from litestar import Controller, post
 from pydantic import BaseModel
-from ..common.models import Session, User, RedactedUser, AuthState
+from ..common.models import Session, User, RedactedUser, Config
 from ..util import guard_logged_in, provide_user
 from litestar.exceptions import NotFoundException, MethodNotAllowedException
 from litestar.di import Provide
@@ -15,11 +15,16 @@ class AuthController(Controller):
     path = "/auth"
 
     @post("/login")
-    async def login(self, session: Session, data: UserSpecModel) -> RedactedUser:
+    async def login(
+        self, session: Session, data: UserSpecModel, config: Config
+    ) -> RedactedUser:
         user = await User.from_username(data.username)
         if not user:
             raise NotFoundException("Unknown username/password")
         if not user.verify(data.password):
+            raise NotFoundException("Unknown username/password")
+
+        if user.admin and not config.auth.admin.enabled:
             raise NotFoundException("Unknown username/password")
 
         session.user_id = user.id

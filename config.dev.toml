@@ -14,3 +14,9 @@ hass_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIzY2NkZjU2ZWRkZDY0Y
 
 [logging]
 level = "INFO"
+
+[auth]
+[auth.admin]
+enabled = true
+username = "root"
+password = "root"

@@ -22,10 +22,10 @@ class Scope(BaseModel):
         if path == "":
             self.children[scope.id] = scope
         elif "." in path:
-            self.children[path].add_scope("", scope, _child=True)
-        else:
             key, remainder = path.split(".", maxsplit=1)
             self.children[key].add_scope(remainder, scope, _child=True)
+        else:
+            self.children[path].add_scope("", scope, _child=True)
 
     @property
     def root(self) -> bool:

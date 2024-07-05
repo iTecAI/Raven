@@ -125,7 +125,6 @@ CORE_SCOPE: dict[str, MinimalScope] = {
             "plugins": {
                 "display_name": "Plugins",
                 "children": {
-                    "view": {"display_name": "View"},
                     "manage": {"display_name": "Manage"},
                 },
             },
@@ -157,7 +156,6 @@ DEFAULT_SCOPES = [
     "admin.users.view.basic",
     "admin.users.view.groups",
     "admin.groups.view.basic",
-    "admin.plugins.view",
     "resources.all.view",
     "pipelines.view",
 ]

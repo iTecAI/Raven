@@ -1,11 +1,11 @@
 from litestar import Controller, get
-from ..util import guard_logged_in, guard_scoped, PluginLoader, Plugin, PluginManifest
+from ..util import guard_logged_in, PluginLoader, Plugin, PluginManifest
 from litestar.exceptions import *
 
 
 class PluginsController(Controller):
     path = "/plugins"
-    guards = [guard_logged_in, guard_scoped("admin.plugins.*")]
+    guards = [guard_logged_in]
 
     @get("/")
     async def get_plugins(self, plugins: PluginLoader) -> dict[str, PluginManifest]:

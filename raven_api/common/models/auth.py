@@ -3,12 +3,14 @@ from passlib.hash import argon2
 from beanie import ValidateOnSave, before_event
 from pydantic import BaseModel
 from .base import BaseObject
+from .scope import Scope, DEFAULT_SCOPES
 
 
 class RedactedUser(BaseModel):
     id: str
     username: str
     admin: bool
+    scopes: list[str]
 
 
 class Session(BaseObject):
@@ -40,13 +42,16 @@ class User(BaseObject):
     username: str
     password: str
     admin: bool = False
+    scopes: list[str] = []
 
     class Settings:
         name = "auth.user"
 
     @classmethod
     def create(cls, username: str, password: str) -> "User":
-        return User(username=username, password=argon2.hash(password))
+        return User(
+            username=username, password=argon2.hash(password), scopes=DEFAULT_SCOPES
+        )
 
     @classmethod
     async def from_username(cls, username: str) -> "User | None":
@@ -60,7 +65,25 @@ class User(BaseObject):
 
     @property
     def redacted(self) -> RedactedUser:
-        return RedactedUser(id=self.id, username=self.username, admin=self.admin)
+        return RedactedUser(
+            id=self.id, username=self.username, admin=self.admin, scopes=self.scopes
+        )
+
+    def has_scope(self, *scopes: Scope | str, all: bool = False) -> bool:
+        if self.admin:
+            return True
+        matched = 0
+        scope_paths = [
+            (i.path if isinstance(i, Scope) else i).split(".") for i in scopes
+        ]
+        for path in scope_paths:
+            if any([i.split(".")[: len(path)] == path for i in self.scopes]):
+                matched += 1
+                if not all:
+                    return True
+        if matched == len(scopes):
+            return True
+        return False
 
 
 class AuthState(BaseModel):

@@ -1,7 +1,8 @@
+from traceback import print_exc
 from litestar import Controller, get, post
 from pydantic import BaseModel
 from ..common.models import Session, User, RedactedUser, Config, Scope
-from ..util import guard_logged_in, provide_user, Context
+from ..util import guard_logged_in, provide_user, Context, provide_user_scopes
 from litestar.exceptions import NotFoundException, MethodNotAllowedException
 from litestar.di import Provide
 
@@ -48,6 +49,24 @@ class AuthController(Controller):
         session.user_id = None
         await session.save()
 
-    @get(path="/scopes", guards=[guard_logged_in])
+    @get("/scopes", guards=[guard_logged_in])
     async def get_scopes(self, context: Context) -> dict[str, Scope]:
         return context.scopes
+
+    @get("/scopes/{scope_path:str}", guards=[guard_logged_in])
+    async def get_scope_at_path(self, context: Context, scope_path: str) -> Scope:
+        try:
+            return context.scope[scope_path]
+        except KeyError:
+            raise NotFoundException("Invalid scope path.")
+
+    @get(
+        "/scopes/self",
+        guards=[guard_logged_in],
+        dependencies={
+            "user": Provide(provide_user),
+            "scopes": Provide(provide_user_scopes),
+        },
+    )
+    async def get_own_scopes(self, scopes: dict[str, Scope]) -> dict[str, Scope]:
+        return scopes

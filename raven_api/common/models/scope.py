@@ -13,8 +13,15 @@ class Scope(BaseModel):
     display_name: str | None = None
     children: dict[str, "Scope"] = {}
 
-    def __getitem__(self, key: str) -> "Scope":
-        return self.children[key]
+    def __getitem__(self, key: str | None) -> "Scope":
+        if key:
+            parts = key.split(".", maxsplit=1)
+            if len(parts) == 2:
+                return self.children[parts[0]][parts[1]]
+            else:
+                return self.children[parts[0]][None]
+        else:
+            return self
 
     def add_scope(self, path: str, scope: "Scope", _child: bool = False):
         if not _child:
@@ -88,7 +95,33 @@ CORE_SCOPE: dict[str, MinimalScope] = {
                         },
                     },
                 },
-            }
+            },
+            "groups": {
+                "display_name": "Group Management",
+                "children": {
+                    "view": {
+                        "display_name": "View",
+                        "children": {
+                            "basic": {"display_name": "Basic"},
+                            "scopes": {"display_name": "Scopes"},
+                        },
+                    },
+                    "manage": {
+                        "display_name": "Manage",
+                        "children": {
+                            "create": {"display_name": "Create"},
+                            "delete": {"display_name": "Delete"},
+                            "edit": {
+                                "display_name": "Edit",
+                                "children": {
+                                    "basic": {"display_name": "Basic"},
+                                    "scopes": {"display_name": "Scopes"},
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         },
     },
     "resources": {
@@ -112,3 +145,11 @@ CORE_SCOPE: dict[str, MinimalScope] = {
         },
     },
 }
+
+DEFAULT_SCOPES = [
+    "admin.users.view.basic",
+    "admin.users.view.groups",
+    "admin.groups.view.basic",
+    "resources.all.view",
+    "pipelines.view",
+]

@@ -56,6 +56,7 @@ async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
                     CONFIG.auth.admin.username, CONFIG.auth.admin.password
                 )
                 created.admin = True
+                created.scopes = []
                 await created.save()
 
         app.state["context"] = context

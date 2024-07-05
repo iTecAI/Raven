@@ -39,7 +39,13 @@
       }
     },
     "layout": {
-      "logout": "Log Out"
+      "logout": "Log Out",
+      "nav": {
+        "home": "Home",
+        "resources": "Devices & Sensors",
+        "pipelines": "Pipelines",
+        "admin": "Administration"
+      }
     }
   }
 }

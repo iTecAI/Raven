@@ -3,5 +3,9 @@
 
     .nav-links {
         flex-grow: 1;
+
+        .nav-item .mantine-Button-label {
+            transform: translate(0, 2px);
+        }
     }
 }

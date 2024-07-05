@@ -144,17 +144,22 @@ export function useScoped(
     options: { scopes: string[]; all?: boolean } | string[]
 ): boolean {
     const scopes = isArray(options) ? options : options.scopes;
+    const scopeCheck = scopes.join(":");
     const all = isArray(options) ? false : options.all ?? false;
     const [result, setResult] = useState<boolean>(false);
     const api = useApi(ScopeMixin);
 
     useEffect(() => {
-        if (all) {
-            api.methods.has_all_scopes(...scopes).then(setResult);
+        if (api.auth?.user?.id) {
+            if (all) {
+                api.methods.has_all_scopes(...scopes).then(setResult);
+            } else {
+                api.methods.has_any_scopes(...scopes).then(setResult);
+            }
         } else {
-            api.methods.has_any_scopes(...scopes).then(setResult);
+            setResult(false);
         }
-    }, [scopes, all, api.auth?.user?.id, api.state]);
+    }, [scopeCheck, all, api.auth?.user?.id, api.state]);
 
     return result;
 }

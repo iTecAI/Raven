@@ -12,20 +12,56 @@ import {
 } from "@mantine/core";
 import {
     IconFeather,
+    IconHome,
+    IconLogicAnd,
     IconLogout,
+    IconPuzzle,
+    IconServerCog,
     IconUser,
     IconUserCog,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { AuthMixin, useApi } from "../../util/api";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { AuthMixin, useApi, useScoped } from "../../util/api";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
+
+function NavItem({
+    icon,
+    title,
+    path,
+}: {
+    icon: (props: any) => ReactNode;
+    title: string;
+    path: string;
+}) {
+    const IconElement = icon;
+    const nav = useNavigate();
+    const location = useLocation();
+    return (
+        <Button
+            className="nav-item"
+            variant={location.pathname === path ? "filled" : "light"}
+            leftSection={<IconElement size={22} />}
+            size="md"
+            justify="left"
+            onClick={() => nav(path)}
+        >
+            {title}
+        </Button>
+    );
+}
 
 export function Layout() {
     const [opened, { toggle }] = useDisclosure();
     const { t } = useTranslation();
     const { state, auth, methods: api } = useApi(AuthMixin);
     const nav = useNavigate();
+    const adminScoped = useScoped([
+        "admin.users.manage.*",
+        "admin.groups.manage.*",
+    ]);
+    const resourceScoped = useScoped(["resources.*"]);
+    const pipelineScoped = useScoped(["pipelines.*"]);
 
     useEffect(() => {
         if (state === "ready" && !auth?.user) {
@@ -61,7 +97,34 @@ export function Layout() {
 
             <AppShell.Navbar className="app-nav">
                 <Stack gap={0} className="nav-main">
-                    <Stack gap="sm" className="nav-links" p="sm"></Stack>
+                    <Stack gap="sm" className="nav-links" p="sm">
+                        <NavItem
+                            icon={IconHome}
+                            title={t("views.layout.nav.home")}
+                            path="/"
+                        />
+                        {resourceScoped && (
+                            <NavItem
+                                icon={IconPuzzle}
+                                title={t("views.layout.nav.resources")}
+                                path="/resources"
+                            />
+                        )}
+                        {pipelineScoped && (
+                            <NavItem
+                                icon={IconLogicAnd}
+                                title={t("views.layout.nav.pipelines")}
+                                path="/pipelines"
+                            />
+                        )}
+                        {adminScoped && (
+                            <NavItem
+                                icon={IconServerCog}
+                                title={t("views.layout.nav.admin")}
+                                path="/admin"
+                            />
+                        )}
+                    </Stack>
                     <Divider />
                     {auth?.user && (
                         <Group
@@ -93,7 +156,9 @@ export function Layout() {
                 </Stack>
             </AppShell.Navbar>
 
-            <AppShell.Main className="app-main"></AppShell.Main>
+            <AppShell.Main className="app-main">
+                <Outlet />
+            </AppShell.Main>
         </AppShell>
     );
 }

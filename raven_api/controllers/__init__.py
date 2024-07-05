@@ -1,9 +1,8 @@
 from litestar import Router, get
-from .plugins import PluginsController
 from ..common.models import Session, AuthState
 from .auth import AuthController, AuthScopesController
 
-CONTROLLERS = [PluginsController, AuthController, AuthScopesController]
+CONTROLLERS = [AuthController, AuthScopesController]
 
 @get("/")
 async def get_root(session: Session) -> AuthState:

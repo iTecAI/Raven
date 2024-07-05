@@ -104,7 +104,7 @@ class Plugin:
             resource_function = self.resolve_export(export_key)
             if resource_function:
                 kwargs = {
-                    k: self.loader.lifecycle.get(export_key, v)
+                    k: self.loader.lifecycle.get(self.manifest.slug, v)
                     for k, v in export.kwargs.items()
                 }
                 if export.is_async:

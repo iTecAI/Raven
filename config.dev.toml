@@ -20,3 +20,6 @@ level = "INFO"
 enabled = true
 username = "root"
 password = "root"
+
+[dev]
+plugin_dep_install = false

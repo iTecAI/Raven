@@ -22,3 +22,4 @@ def guard_scoped(*scopes: list[str], all: bool = False):
             raise NotAuthorizedException(
                 "Insufficient permissions to access this endpoint"
             )
+    return guard_scoped_inner

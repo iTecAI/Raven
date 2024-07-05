@@ -145,15 +145,16 @@ class PluginLoader:
 
                     self.logger.debug(f"Loaded plugin manifest for {manifest.slug}")
 
-                    deps = [i.ref for i in manifest.dependencies]
-                    self.logger.debug(
-                        f"Installing plugin dependencies: [{', '.join(deps)}]"
-                    )
-                    subprocess.run(
-                        [sys.executable, "-m", "pip", "install", *deps],
-                        check=True,
-                        capture_output=True,
-                    )
+                    if self.config.dev.plugin_dep_install:
+                        deps = [i.ref for i in manifest.dependencies]
+                        self.logger.debug(
+                            f"Installing plugin dependencies: [{', '.join(deps)}]"
+                        )
+                        subprocess.run(
+                            [sys.executable, "-m", "pip", "install", *deps],
+                            check=True,
+                            capture_output=True,
+                        )
 
                     spec = importlib.util.spec_from_file_location(
                         f"raven_plugins.{manifest.slug}",

@@ -42,8 +42,13 @@ class AuthConfig(BaseModel):
     admin: AuthAdminConfig | None = None
 
 
+class DevConfig(BaseModel):
+    plugin_dep_install: bool = True
+
+
 class Config(BaseModel):
     storage: StorageConfig
     plugins: dict[str, dict] = {}
     logging: LoggingConfig = LoggingConfig()
     auth: AuthConfig = AuthConfig()
+    dev: DevConfig = DevConfig()

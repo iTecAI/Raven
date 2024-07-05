@@ -20,13 +20,13 @@ class Context:
         self.mongodb = mongodb
         self.scope = Scope.from_spec(CORE_SCOPE)
 
-        for plugin_key, plugin in self.plugins.plugins.items():
+        for plugin_key, plugin in self.plugins.items():
             self.scope.add_scope(
                 f"resources.plugin",
                 Scope(
                     id=plugin_key,
                     parent="resources.plugin",
-                    display_name=plugin["manifest"].name,
+                    display_name=plugin.manifest.name,
                 ),
             )
 

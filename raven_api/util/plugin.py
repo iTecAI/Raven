@@ -4,7 +4,7 @@ from logging import Logger
 import os
 from traceback import print_exc
 from types import ModuleType
-from typing import Any, Callable, TypedDict
+from typing import Any, Callable, ItemsView, Literal, Type, TypedDict
 from pydantic import BaseModel
 from ..common.plugin import (
     PluginManifest,
@@ -12,6 +12,7 @@ from ..common.plugin import (
     LifecycleContext,
     EXPORTS,
     ResourceExport,
+    Resource,
 )
 from ..common.models import Config
 import importlib.util
@@ -60,17 +61,70 @@ class PluginRecord(TypedDict):
     module: ModuleType
 
 
+class Plugin:
+    def __init__(self, record: PluginRecord, loader: "PluginLoader"):
+        self._record = record
+        self.loader = loader
+
+    @property
+    def folder(self) -> str:
+        return self._record["folder"]
+
+    @property
+    def manifest(self) -> PluginManifest:
+        return self._record["manifest"]
+
+    @property
+    def module(self) -> ModuleType:
+        return self._record["module"]
+
+    def exports(self, *types: Literal["resource", "lifecycle"]) -> dict[str, EXPORTS]:
+        return {
+            k: v
+            for k, v in self.manifest.exports.items()
+            if len(types) == 0 or v.type in types
+        }
+
+    def get_export(self, key: str) -> EXPORTS | None:
+        return self.manifest.exports.get(key, None)
+
+    def resolve_export[T](self, key: str, _exported: Type[T] = None) -> T | None:
+        result = self.get_export(key)
+        if result:
+            try:
+                return result.resolve(self.module)
+            except:
+                return None
+        return None
+
+    async def get_resources(self) -> list[Resource]:
+        resource_exports = self.exports("resource")
+        results = []
+        for export_key, export in resource_exports.items():
+            resource_function = self.resolve_export(export_key)
+            if resource_function:
+                kwargs = {
+                    k: self.loader.lifecycle.get(export_key, v)
+                    for k, v in export.kwargs.items()
+                }
+                if export.is_async:
+                    results.extend(await resource_function(**kwargs))
+                else:
+                    results.extend(resource_function(**kwargs))
+        return results
+
+
 class PluginLoader:
 
     def __init__(self, config: Config, logger: Logger):
         self.config = config
         self.logger = logger
         self.lifecycle = LifecycleContext()
-        self.plugins = self._load_plugins()
+        self._plugins = self._load_plugins()
 
     @property
     def manifests(self) -> list[PluginManifest]:
-        return [i["manifest"] for i in self.plugins.values()]
+        return [i["manifest"] for i in self._plugins.values()]
 
     def _load_plugins(self) -> dict[str, PluginRecord]:
         self.logger.info("Loading plugins...")
@@ -119,7 +173,7 @@ class PluginLoader:
     @asynccontextmanager
     async def resolve_lifecycle(self):
         lifecycle_records: list[LifecycleRecord] = []
-        for plugin in self.plugins.values():
+        for plugin in self._plugins.values():
             for export in plugin["manifest"].exports.values():
                 if export.type == "lifecycle":
                     lifecycle_records.append(
@@ -137,32 +191,15 @@ class PluginLoader:
             yield context
 
     @property
-    def exports(self) -> dict[tuple[str, str], EXPORTS]:
-        results = {}
-        for plugin in self.plugins.values():
-            for export_name, export_data in plugin["manifest"].exports.items():
-                results[(plugin["manifest"].slug, export_name)] = export_data
-        return results
+    def plugins(self) -> dict[str, Plugin]:
+        return {k: Plugin(v, self) for k, v in self._plugins.items()}
 
-    def resources(self, plugin_name: str) -> dict[str, ResourceExport]:
-        return {
-            k[1]: v
-            for k, v in self.exports.items()
-            if k[0] == plugin_name and v.type == "resource"
-        }
+    def get(self, key: str) -> Plugin | None:
+        record = self._plugins.get(key, None)
+        return Plugin(record, self) if record else None
 
-    def resolve_export(self, plugin_name: str, export: EXPORTS) -> Any:
-        return export.resolve(self.plugins[plugin_name]["module"])
+    def items(self) -> ItemsView[str, Plugin]:
+        return self.plugins.items()
 
-    async def call_resource(
-        self, plugin_name: str, export_name: str, exported: Callable
-    ) -> Any:
-        resource = self.resources(plugin_name).get(export_name, None)
-        if not resource:
-            raise KeyError
-        kwargs = {
-            k: self.lifecycle.get(plugin_name, v) for k, v in resource.kwargs.items()
-        }
-        if resource.is_async:
-            return await exported(**kwargs)
-        return exported(**kwargs)
+    def keys(self) -> list[str]:
+        return list(self._plugins.keys())

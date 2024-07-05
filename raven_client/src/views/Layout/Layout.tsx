@@ -59,6 +59,7 @@ export function Layout() {
     const adminScoped = useScoped([
         "admin.users.manage.*",
         "admin.groups.manage.*",
+        "admin.plugins.manage.*",
     ]);
     const resourceScoped = useScoped(["resources.*"]);
     const pipelineScoped = useScoped(["pipelines.*"]);

@@ -49,24 +49,32 @@ class AuthController(Controller):
         session.user_id = None
         await session.save()
 
-    @get("/scopes", guards=[guard_logged_in])
-    async def get_scopes(self, context: Context) -> dict[str, Scope]:
+
+class ScopeValidationModel(BaseModel):
+    scopes: list[str]
+    all: bool = False
+
+
+class AuthScopesController(Controller):
+    path = "/auth/scopes"
+    guards = [guard_logged_in]
+    dependencies = {"user": Provide(provide_user)}
+
+    @get("/", dependencies={"scopes": Provide(provide_user_scopes)})
+    async def get_own_scopes(self, scopes: dict[str, Scope]) -> dict[str, Scope]:
+        return scopes
+
+    @get("/all")
+    async def get_all_scopes(self, context: Context) -> dict[str, Scope]:
         return context.scopes
 
-    @get("/scopes/{scope_path:str}", guards=[guard_logged_in])
+    @get("/tree/{scope_path:str}")
     async def get_scope_at_path(self, context: Context, scope_path: str) -> Scope:
         try:
             return context.scope[scope_path]
-        except KeyError:
-            raise NotFoundException("Invalid scope path.")
+        except:
+            raise NotFoundException("Requested scope path did not resolve")
 
-    @get(
-        "/scopes/self",
-        guards=[guard_logged_in],
-        dependencies={
-            "user": Provide(provide_user),
-            "scopes": Provide(provide_user_scopes),
-        },
-    )
-    async def get_own_scopes(self, scopes: dict[str, Scope]) -> dict[str, Scope]:
-        return scopes
+    @post("/validate")
+    async def validate_scopes(self, user: User, data: ScopeValidationModel) -> bool:
+        return user.has_scope(*data.scopes, all=data.all)

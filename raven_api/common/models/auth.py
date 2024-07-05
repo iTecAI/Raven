@@ -77,10 +77,23 @@ class User(BaseObject):
             (i.path if isinstance(i, Scope) else i).split(".") for i in scopes
         ]
         for path in scope_paths:
-            if any([i.split(".")[: len(path)] == path for i in self.scopes]):
-                matched += 1
-                if not all:
-                    return True
+            if path[-1] == "*":
+                if any(
+                    [
+                        i.split(".")[: len(path) - 1] == path[: len(path) - 1]
+                        for i in self.scopes
+                    ]
+                ):
+                    matched += 1
+                    if not all:
+                        return True
+            else:
+                if any(
+                    [".".join(path[:i]) in self.scopes for i in range(1, len(path) + 1)]
+                ):
+                    matched += 1
+                    if not all:
+                        return True
         if matched == len(scopes):
             return True
         return False

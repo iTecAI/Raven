@@ -10,7 +10,7 @@ import {
     ApiSuccess,
 } from "./types";
 import { ApiProvider } from "./ApiProvider";
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { AuthState } from "../../types/backend/auth";
 
 export { data, ApiProvider, ApiContext };
@@ -23,11 +23,11 @@ export type {
     ApiResponse,
     ApiSuccess,
 };
-import { ApiMethods, AuthMixin, BaseApi } from "./methods";
-export { AuthMixin };
+import { ApiMethods, AuthMixin, BaseApi, ScopeMixin } from "./methods";
+export { AuthMixin, ScopeMixin };
 import { UnionToIntersection, ValuesType } from "utility-types";
 import { useCustomCompareMemo } from "use-custom-compare";
-import { difference, eq, uniqueId } from "lodash";
+import { difference, eq, isArray, uniqueId } from "lodash";
 
 export function useApiContext(): ApiContextType {
     return useContext(ApiContext);
@@ -139,3 +139,22 @@ export function useApi<TMixins extends ApiMethods<any, any>[]>(
         methods: constructedMethods as any
     }
 };
+
+export function useScoped(
+    options: { scopes: string[]; all?: boolean } | string[]
+): boolean {
+    const scopes = isArray(options) ? options : options.scopes;
+    const all = isArray(options) ? false : options.all ?? false;
+    const [result, setResult] = useState<boolean>(false);
+    const api = useApi(ScopeMixin);
+
+    useEffect(() => {
+        if (all) {
+            api.methods.has_all_scopes(...scopes).then(setResult);
+        } else {
+            api.methods.has_any_scopes(...scopes).then(setResult);
+        }
+    }, [scopes, all, api.auth?.user?.id, api.state]);
+
+    return result;
+}

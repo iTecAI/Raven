@@ -26,6 +26,9 @@ class ResourcePropertyType(StrEnum):
     def __str__(self) -> str:
         return self.value
 
+    def __eq__(self, value: object) -> bool:
+        return str(self) == str(value)
+
     @property
     def priority(self):
         return self._priority_

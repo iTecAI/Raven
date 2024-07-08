@@ -46,6 +46,11 @@
         "pipelines": "Pipelines",
         "admin": "Administration"
       }
+    },
+    "resources": {
+      "item": {
+        "no_category": "Uncategorized"
+      }
     }
   }
 }

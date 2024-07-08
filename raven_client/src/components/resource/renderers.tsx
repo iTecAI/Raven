@@ -12,16 +12,27 @@ import {
     Group,
     Indicator,
     NumberFormatter,
+    Paper,
     Pill,
     Switch,
+    Text,
 } from "@mantine/core";
 import { Calendar, DateTimePicker, TimeInput } from "@mantine/dates";
+import { useTranslation } from "react-i18next";
 
 export function ResourcePropertyRenderer({
     property,
 }: {
     property: ResourceProperty;
 }) {
+    const { t } = useTranslation();
+    if (property.value === null) {
+        return (
+            <Text c="dimmed" fs="italic" size="sm">
+                {t("components.resources.render.no_content")}
+            </Text>
+        );
+    }
     switch (property.type) {
         case ResourcePropertyType.OBJECT:
             return (
@@ -29,7 +40,7 @@ export function ResourcePropertyRenderer({
                     code={
                         isString(property.value)
                             ? property.value
-                            : JSON.stringify(property.value)
+                            : JSON.stringify(property.value, undefined, 4)
                     }
                     language="json"
                 />
@@ -95,13 +106,15 @@ export function ResourcePropertyRenderer({
             return <Badge>{property.value}</Badge>;
         case ResourcePropertyType.LIST:
             return (
-                <Fieldset variant="default" radius="sm" p="xs">
+                <Paper p="xs">
                     <Group gap="xs">
                         {property.value.map((v: any, i: number) => (
-                            <Pill key={i}>{v}</Pill>
+                            <Badge variant="dot" key={i}>
+                                {v}
+                            </Badge>
                         ))}
                     </Group>
-                </Fieldset>
+                </Paper>
             );
     }
 }

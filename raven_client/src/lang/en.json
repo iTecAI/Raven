@@ -52,5 +52,27 @@
         "no_category": "Uncategorized"
       }
     }
+  },
+  "components": {
+    "resources": {
+      "modal": {
+        "plugin_title": "Plugin Info",
+        "tags_title": "Tags",
+        "no_tags": "No tags",
+        "properties_title": "Properties",
+        "properties": {
+          "hidden": "Hide/Show Advanced",
+          "empty": "Hide/Show Empty"
+        },
+        "tab": {
+          "info": "Info",
+          "properties": "Properties",
+          "execute": "Execute"
+        }
+      },
+      "render": {
+        "no_content": "No value"
+      }
+    }
   }
 }

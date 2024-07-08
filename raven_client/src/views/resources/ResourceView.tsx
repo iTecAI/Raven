@@ -1,4 +1,4 @@
-import { useListState } from "@mantine/hooks";
+import { useDisclosure, useListState } from "@mantine/hooks";
 import { PluginMixin, ResourceMixin, useApi, useScoped } from "../../util/api";
 import { Resource } from "../../types/backend/resource";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -12,10 +12,13 @@ import { startCase } from "lodash";
 import { IconDotsVertical, IconPuzzle } from "@tabler/icons-react";
 import { ResourcePropertyIcon } from "../../components/resource/PropertyIcon";
 import { ResourcePropertyRenderer } from "../../components/resource/renderers";
+import { ResourceModal } from "../../components/resource/ResourceModal";
 
 const ResourceItem = memo(
     ({ resource, plugin }: { resource: Resource; plugin: PluginManifest }) => {
         const { t } = useTranslation();
+        const [options, { close: closeModal, open: openModal }] =
+            useDisclosure(false);
         return (
             <Paper
                 p="sm"
@@ -23,6 +26,12 @@ const ResourceItem = memo(
                 shadow="sm"
                 radius="sm"
             >
+                <ResourceModal
+                    resource={resource}
+                    plugin={plugin}
+                    open={options}
+                    onClose={closeModal}
+                />
                 <Stack gap="sm">
                     <Group
                         gap="sm"
@@ -45,7 +54,11 @@ const ResourceItem = memo(
                                 </Badge>
                             </Stack>
                         </Group>
-                        <ActionIcon variant="transparent" radius="xl">
+                        <ActionIcon
+                            variant="transparent"
+                            radius="xl"
+                            onClick={() => openModal()}
+                        >
                             <IconDotsVertical size={20} />
                         </ActionIcon>
                     </Group>

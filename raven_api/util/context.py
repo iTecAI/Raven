@@ -27,6 +27,18 @@ class Context:
                     id=plugin_key,
                     parent="resources.plugin",
                     display_name=plugin.manifest.name,
+                    children={
+                        "view": Scope(
+                            id="view",
+                            parent=f"resources.plugin.{plugin_key}",
+                            display_name="View",
+                        ),
+                        "execute": Scope(
+                            id="execute",
+                            parent=f"resources.plugin.{plugin_key}",
+                            display_name="Execute",
+                        ),
+                    },
                 ),
             )
 

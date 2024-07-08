@@ -7,6 +7,8 @@ export type Session = {
 export type User = {
     id: string;
     username: string;
+    admin: boolean;
+    scopes: string[];
 };
 
 export type AuthState = {

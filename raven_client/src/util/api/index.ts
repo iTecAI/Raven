@@ -23,8 +23,14 @@ export type {
     ApiResponse,
     ApiSuccess,
 };
-import { ApiMethods, AuthMixin, BaseApi, ScopeMixin } from "./methods";
-export { AuthMixin, ScopeMixin };
+import {
+    ApiMethods,
+    AuthMixin,
+    BaseApi,
+    ScopeMixin,
+    ResourceMixin,
+} from "./methods";
+export { AuthMixin, ScopeMixin, ResourceMixin };
 import { UnionToIntersection, ValuesType } from "utility-types";
 import { useCustomCompareMemo } from "use-custom-compare";
 import { difference, eq, isArray, uniqueId } from "lodash";
@@ -151,6 +157,10 @@ export function useScoped(
 
     useEffect(() => {
         if (api.auth?.user?.id) {
+            if (api.auth.user.admin) {
+                setResult(true);
+                return;
+            }
             if (all) {
                 api.methods.has_all_scopes(...scopes).then(setResult);
             } else {

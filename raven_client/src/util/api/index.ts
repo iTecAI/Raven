@@ -29,11 +29,12 @@ import {
     BaseApi,
     ScopeMixin,
     ResourceMixin,
+    PluginMixin,
 } from "./methods";
-export { AuthMixin, ScopeMixin, ResourceMixin };
+export { AuthMixin, ScopeMixin, ResourceMixin, PluginMixin };
 import { UnionToIntersection, ValuesType } from "utility-types";
 import { useCustomCompareMemo } from "use-custom-compare";
-import { difference, eq, isArray, uniqueId } from "lodash";
+import { difference, eq, uniqueId } from "lodash";
 
 export function useApiContext(): ApiContextType {
     return useContext(ApiContext);
@@ -83,10 +84,10 @@ export function useApi<TMixins extends ApiMethods<any, any>[]>(
     const context = useApiContext();
     const constructedMethods = useCustomCompareMemo(
         () => {
-            return new (mixins.reduce(
-                (prev, cur) => cur(prev),
-                BaseApi
-            ))(context, uniqueId());
+            return new (mixins.reduce((prev, cur) => cur(prev), BaseApi))(
+                context,
+                uniqueId()
+            );
         },
         [context, mixins],
         ([prevContext, prevMixins], [nextContext, nextMixins]) => {
@@ -131,7 +132,6 @@ export function useApi<TMixins extends ApiMethods<any, any>[]>(
                             return true;
                         }
                         return false;
-                        
                 }
             } else {
                 return false;
@@ -142,34 +142,55 @@ export function useApi<TMixins extends ApiMethods<any, any>[]>(
     return {
         state: context.state,
         auth: context.state === "ready" ? context.auth : null,
-        methods: constructedMethods as any
-    }
-};
+        methods: constructedMethods as any,
+    };
+}
 
-export function useScoped(
-    options: { scopes: string[]; all?: boolean } | string[]
-): boolean {
-    const scopes = isArray(options) ? options : options.scopes;
+export function useScopeMatch(...scopes: string[]): {
+    [key: string]: boolean | null;
+} {
     const scopeCheck = scopes.join(":");
-    const all = isArray(options) ? false : options.all ?? false;
-    const [result, setResult] = useState<boolean>(false);
+    const [result, setResult] = useState<{ [key: string]: boolean }>(
+        scopes.reduce((prev, cur) => ({ ...prev, [cur]: null }), {})
+    );
     const api = useApi(ScopeMixin);
 
     useEffect(() => {
         if (api.auth?.user?.id) {
             if (api.auth.user.admin) {
-                setResult(true);
+                setResult(
+                    scopes.reduce((prev, cur) => ({ ...prev, [cur]: true }), {})
+                );
                 return;
             }
-            if (all) {
-                api.methods.has_all_scopes(...scopes).then(setResult);
-            } else {
-                api.methods.has_any_scopes(...scopes).then(setResult);
-            }
+            api.methods.validate_scopes(...scopes).then((v) =>
+                setResult(
+                    Object.entries(v).reduce(
+                        (prev, [crKey, crVal]) => ({
+                            ...prev,
+                            [crKey]: crVal === null ? null : crVal.length > 0,
+                        }),
+                        {}
+                    )
+                )
+            );
         } else {
-            setResult(false);
+            setResult(
+                scopes.reduce((prev, cur) => ({ ...prev, [cur]: null }), {})
+            );
         }
-    }, [scopeCheck, all, api.auth?.user?.id, api.state]);
+    }, [scopeCheck, api.auth?.user?.id, api.state]);
 
     return result;
+}
+
+export function useScoped(scopes: string[], all?: boolean): boolean {
+    const matched = Object.values(useScopeMatch(...scopes)).filter(
+        (v) => v === null || v === true
+    );
+    if (all) {
+        return matched.length === scopes.length;
+    } else {
+        return matched.length > 0;
+    }
 }

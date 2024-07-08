@@ -21,23 +21,15 @@ export function ScopeMixin<TBase extends MixinConstructor>(base: TBase) {
             );
         }
 
-        public async has_any_scopes(...scopes: string[]): Promise<boolean> {
+        public async validate_scopes(
+            ...scopes: string[]
+        ): Promise<{ [key: string]: string[] | null }> {
             return data(
-                await this.request<boolean>("/auth/scopes/validate", {
-                    method: "post",
-                    body: { scopes },
-                }),
-                false
-            );
-        }
-
-        public async has_all_scopes(...scopes: string[]): Promise<boolean> {
-            return data(
-                await this.request<boolean>("/auth/scopes/validate", {
-                    method: "post",
-                    body: { scopes, all: true },
-                }),
-                false
+                await this.request<{ [key: string]: string[] }>(
+                    "/auth/scopes/validate",
+                    { method: "post", body: scopes }
+                ),
+                scopes.reduce((prev, cur) => ({ ...prev, [cur]: null }), {})
             );
         }
     };

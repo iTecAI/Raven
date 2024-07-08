@@ -18,7 +18,7 @@ def guard_scoped(*scopes: list[str], all: bool = False):
         if not session.user_id:
             raise NotAuthorizedException("This endpoint requires login.")
         user = await session.user()
-        if not user.has_scope(*scopes, all=all):
+        if not user.has_scope(*scopes, match_all=all):
             raise NotAuthorizedException(
                 "Insufficient permissions to access this endpoint"
             )

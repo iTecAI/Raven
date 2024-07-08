@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "./views/Layout/Layout";
 import { AuthView } from "./views/auth/AuthView";
+import { ResourceView } from "./views/resources/ResourceView";
 
 export const router = createBrowserRouter([
     {
@@ -17,7 +18,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "/resources",
-                element: <></>,
+                element: <ResourceView />,
             },
             {
                 path: "/pipelines",

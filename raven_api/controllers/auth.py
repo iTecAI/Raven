@@ -50,11 +50,6 @@ class AuthController(Controller):
         await session.save()
 
 
-class ScopeValidationModel(BaseModel):
-    scopes: list[str]
-    all: bool = False
-
-
 class AuthScopesController(Controller):
     path = "/auth/scopes"
     guards = [guard_logged_in]
@@ -76,5 +71,5 @@ class AuthScopesController(Controller):
             raise NotFoundException("Requested scope path did not resolve")
 
     @post("/validate")
-    async def validate_scopes(self, user: User, data: ScopeValidationModel) -> bool:
-        return user.has_scope(*data.scopes, all=data.all)
+    async def validate_scopes(self, user: User, data: list[str]) -> dict[str, bool]:
+        return user.check_scope(*data)

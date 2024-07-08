@@ -6,6 +6,30 @@ from .base import BaseObject
 from .scope import Scope, DEFAULT_SCOPES
 
 
+def glob_match(check: str, matches: list[str]) -> list[str]:
+    check_parts = check.split(".")
+    results = []
+    for match in matches:
+        parts = match.split(".")
+        is_candidate = True
+        for i in range(len(parts)):
+            if i >= len(check_parts):
+                if check_parts[-1] != "*":
+                    is_candidate = False
+                    break
+            else:
+                if check_parts[i] == parts[i] or check_parts[i] == "*":
+                    pass
+                else:
+                    is_candidate = False
+                    break
+
+        if is_candidate:
+            results.append(match)
+
+    return results
+
+
 class RedactedUser(BaseModel):
     id: str
     username: str
@@ -69,34 +93,23 @@ class User(BaseObject):
             id=self.id, username=self.username, admin=self.admin, scopes=self.scopes
         )
 
-    def has_scope(self, *scopes: Scope | str, all: bool = False) -> bool:
+    def check_scope(self, *scopes: Scope | str) -> dict[str, bool]:
+        scope_paths = [i.path if isinstance(i, Scope) else i for i in scopes]
         if self.admin:
-            return True
-        matched = 0
-        scope_paths = [
-            (i.path if isinstance(i, Scope) else i).split(".") for i in scopes
-        ]
-        for path in scope_paths:
-            if path[-1] == "*":
-                if any(
-                    [
-                        i.split(".")[: len(path) - 1] == path[: len(path) - 1]
-                        for i in self.scopes
-                    ]
-                ):
-                    matched += 1
-                    if not all:
-                        return True
-            else:
-                if any(
-                    [".".join(path[:i]) in self.scopes for i in range(1, len(path) + 1)]
-                ):
-                    matched += 1
-                    if not all:
-                        return True
-        if matched == len(scopes):
-            return True
-        return False
+            return {path: True for path in scope_paths}
+
+        result = {}
+        for check in scope_paths:
+            result[check] = glob_match(check, self.scopes)
+
+        return result
+
+    def has_scope(self, *scopes: Scope | str, match_all: bool = False) -> bool:
+        matched = self.check_scope(*scopes)
+        if match_all:
+            return all(matched.values())
+        else:
+            return any(matched.values())
 
 
 class AuthState(BaseModel):

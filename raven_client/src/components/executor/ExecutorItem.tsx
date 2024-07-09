@@ -1,5 +1,6 @@
 import {
     Autocomplete,
+    Button,
     Checkbox,
     ColorInput,
     Divider,
@@ -41,12 +42,14 @@ import {
     IconSettings,
     IconSettingsOff,
     IconTagsFilled,
+    IconX,
 } from "@tabler/icons-react";
 import { DateInput, DateTimePicker, TimeInput } from "@mantine/dates";
 import { isNumber, omit } from "lodash";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 import { ResourceMixin, useApi } from "../../util/api";
+import { useTranslation } from "react-i18next";
 
 function ResourcePicker({
     field,
@@ -471,12 +474,14 @@ export function ExecutorItem({
 }) {
     const form = useForm<{ [key: string]: any }>({
         initialValues: Object.keys(executor.arguments ?? {}).reduce(
-            (prev, current) => ({ ...prev, [current]: null }),
+            (prev, current) => ({ ...prev, [current]: undefined }),
             {},
         ),
     });
     const theme = useMantineTheme();
     const [advanced, setAdvanced] = useState(false);
+    const { t } = useTranslation();
+    const api = useApi(ResourceMixin);
     return (
         <Paper p="sm" className="paper-light exec-item">
             <Stack gap="sm">
@@ -530,6 +535,29 @@ export function ExecutorItem({
                             key={fieldId}
                         />
                     ))}
+                <Group gap="sm" justify="end">
+                    <Button
+                        leftSection={<IconX size={20} />}
+                        variant="light"
+                        color="red"
+                        onClick={() => form.reset()}
+                    >
+                        {t("components.exec.item.reset")}
+                    </Button>
+                    <Button
+                        leftSection={<IconPlayerPlayFilled size={20} />}
+                        onClick={() => {
+                            api.methods.execute_on_resource(
+                                executor,
+                                form.getValues(),
+                                resource,
+                            );
+                            form.reset();
+                        }}
+                    >
+                        {t("components.exec.item.exec")}
+                    </Button>
+                </Group>
             </Stack>
         </Paper>
     );

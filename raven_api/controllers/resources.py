@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any
 from litestar import Controller, get, post
+from pydantic import BaseModel
 from ..util import (
     guard_logged_in,
     PluginLoader,
@@ -13,6 +14,12 @@ from ..common.plugin import Resource, Executor, ExecutionTarget, match_execution
 from ..common.models import User
 from litestar.exceptions import *
 from litestar.di import Provide
+
+
+class ExecutionModel(BaseModel):
+    target: Resource
+    executor: Executor
+    args: dict[str, Any]
 
 
 class ResourceController(Controller):
@@ -85,3 +92,18 @@ class ResourceController(Controller):
             results.extend(t.result())
 
         return [i for i in results if match_execution_targets(data, i)]
+
+    @post(
+        "/execute",
+        guards=[guard_scoped("resources.all.execute", "resources.plugin.*.execute")],
+    )
+    async def execute_on_resource(
+        self, user: User, plugins: PluginLoader, data: ExecutionModel
+    ) -> None:
+        if user.has_scope(
+            "resources.all.execute", f"resources.plugin.{data.executor.plugin}.execute"
+        ):
+            plugin = plugins.get(data.executor.plugin)
+            await plugin.call_executor(data.executor, data.args, data.target)
+            return None
+        raise NotAuthorizedException("Insufficient scope to execute")

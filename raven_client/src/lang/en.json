@@ -73,6 +73,12 @@
       "render": {
         "no_content": "No value"
       }
+    },
+    "exec": {
+      "item": {
+        "reset": "Clear",
+        "exec": "Execute"
+      }
     }
   }
 }

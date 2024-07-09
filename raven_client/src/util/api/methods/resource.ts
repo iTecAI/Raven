@@ -32,5 +32,16 @@ export function ResourceMixin<TBase extends MixinConstructor>(base: TBase) {
                 [],
             );
         }
+
+        public async execute_on_resource(
+            executor: Executor,
+            args: { [key: string]: any },
+            target: Resource,
+        ): Promise<void> {
+            await this.request<null>("/resources/execute", {
+                method: "post",
+                body: { target, executor, args },
+            });
+        }
     };
 }

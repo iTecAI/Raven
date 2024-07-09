@@ -238,6 +238,6 @@ class ExecutionManager:
         raise NotImplementedError
 
     async def execute(
-        self, executor: Executor, arguments: dict[str, Any], target: Resource | None
-    ) -> Resource | None:
+        self, executor: Executor, arguments: dict[str, Any], target: Resource
+    ) -> Resource:
         raise NotImplementedError

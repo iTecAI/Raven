@@ -183,15 +183,15 @@ class Plugin:
         self,
         executor: Executor,
         arguments: dict[str, Any],
-        target: Resource | None = None,
-    ) -> Resource | None:
+        target: Resource,
+    ) -> None:
         for manager in self.execution_managers:
             if manager.export == executor.export:
                 try:
                     return await manager.execute(executor, arguments, target)
                 except:
-                    return []
-        return []
+                    return None
+        return None
 
 
 class PluginLoader:

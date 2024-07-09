@@ -2,6 +2,7 @@ from inspect import ismodule
 from types import ModuleType
 from typing import Literal
 from pydantic import BaseModel
+from .executor import ExecutionManager
 
 class PluginDependency(BaseModel):
     name: str
@@ -47,7 +48,15 @@ class ResourceExport(BaseExport):
     kwargs: dict[str, str | Literal["config"]] = {}
 
 
-EXPORTS = LifecycleExport | ResourceExport
+class ExecutorExport(BaseExport):
+    type: Literal["executor"]
+    kwargs: dict[str, str | Literal["config"]] = {}
+
+    def resolve(self, base: ModuleType) -> ExecutionManager:
+        return super().resolve(base)
+
+
+EXPORTS = LifecycleExport | ResourceExport | ExecutorExport
 
 class PluginManifest(BaseModel):
     slug: str

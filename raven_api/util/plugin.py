@@ -1,3 +1,4 @@
+from asyncio import Task, TaskGroup
 from contextlib import asynccontextmanager
 import json
 from logging import Logger
@@ -13,6 +14,8 @@ from ..common.plugin import (
     EXPORTS,
     ResourceExport,
     Resource,
+    ExecutionManager,
+    Executor,
 )
 from ..common.models import Config
 import importlib.util
@@ -78,7 +81,9 @@ class Plugin:
     def module(self) -> ModuleType:
         return self._record["module"]
 
-    def exports(self, *types: Literal["resource", "lifecycle"]) -> dict[str, EXPORTS]:
+    def exports(
+        self, *types: Literal["resource", "lifecycle", "executor"]
+    ) -> dict[str, EXPORTS]:
         return {
             k: v
             for k, v in self.manifest.exports.items()
@@ -112,6 +117,80 @@ class Plugin:
                 else:
                     results.extend(resource_function(**kwargs))
         return results
+
+    @property
+    def execution_managers(self) -> list[ExecutionManager]:
+        constructors: dict[str, Type[ExecutionManager]] = {
+            export: self.resolve_export(export, _exported=ExecutionManager)
+            for export in self.exports("executor").keys()
+        }
+
+        result = []
+        for export, constructor in constructors.items():
+            kwargs = {
+                k: self.loader.lifecycle.get(self.manifest.slug, v)
+                for k, v in self.manifest.exports.get(export).kwargs.items()
+            }
+            result.append(constructor(export, **kwargs))
+        return result
+
+    async def get_executors_for_resources(
+        self, targets: list[Resource]
+    ) -> list[Executor]:
+        tasks: list[Task] = []
+
+        async def exec_one(
+            manager: ExecutionManager, targets: list[Resource]
+        ) -> list[Executor]:
+            try:
+                return await manager.get_executors(targets)
+            except:
+                return []
+
+        async with TaskGroup() as group:
+            for manager in self.execution_managers:
+                tasks.append(group.create_task(exec_one(manager, targets)))
+
+        results = []
+        for task in tasks:
+            results.extend(task.result())
+
+        return results
+
+    async def get_possible_executor_targets(self, executor: Executor) -> list[Resource]:
+        tasks: list[Task] = []
+
+        async def exec_one(
+            manager: ExecutionManager, executor: Executor
+        ) -> list[Resource]:
+            try:
+                return await manager.get_available_targets(executor)
+            except:
+                return []
+
+        async with TaskGroup() as group:
+            for manager in self.execution_managers:
+                tasks.append(group.create_task(exec_one(manager, executor)))
+
+        results = []
+        for task in tasks:
+            results.extend(task.result())
+
+        return results
+
+    async def call_executor(
+        self,
+        executor: Executor,
+        arguments: dict[str, Any],
+        target: Resource | None = None,
+    ) -> Resource | None:
+        for manager in self.execution_managers:
+            if manager.export == executor.export:
+                try:
+                    return await manager.execute(executor, arguments, target)
+                except:
+                    return []
+        return []
 
 
 class PluginLoader:

@@ -65,7 +65,7 @@ export function ResourcePropertyRenderer({
                 </Code>
             );
         case ResourcePropertyType.BOOLEAN:
-            return <Switch readOnly checked={property.value} />;
+            return <Switch readOnly checked={property.value} opacity={0.6} />;
         case ResourcePropertyType.DATE:
             return (
                 <Calendar

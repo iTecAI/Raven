@@ -28,12 +28,19 @@ def match_fragment(fragment: dict, test: dict) -> bool:
 
 
 class ExecutionTarget(BaseModel):
+    exclude: bool = False
     categories: str | list[str] | None = None
     tags: list[str | list[str]] | str | None = None
     id: str | list[str] | None = None
     fragment: dict | None = None
 
     def matches(self, target: Resource, match_none=False) -> bool:
+        result = self._matches(target, match_none=match_none)
+        if self.exclude:
+            return not result
+        return result
+
+    def _matches(self, target: Resource, match_none=False) -> bool:
         target_dict = target.model_dump()
         if self.categories:
             if target.metadata.category == None:
@@ -44,9 +51,7 @@ class ExecutionTarget(BaseModel):
                     if self.categories != target.metadata.category:
                         return False
                 else:
-                    if not any(
-                        [i == target.metadata.category for i in self.categories]
-                    ):
+                    if not target.metadata.category in self.categories:
                         return False
 
         if self.tags:
@@ -132,8 +137,19 @@ class ObjectArgument(ExecArgument):
 
 class SelectionArgument(ExecArgument):
     type: Literal["selection"] = "selection"
-    options: list[str] = []
+    options: list[str | dict[str, str]] = []
     multiple: bool = False
+
+
+class DurationArgument(ExecArgument):
+    type: Literal["duration"] = "duration"
+    days: bool = False
+    negatives: bool = False
+
+
+class DateTimeArgument(ExecArgument):
+    type: Literal["datetime"] = "datetime"
+    mode: Literal["datetime", "date", "time"] = "datetime"
 
 
 class ArrayArgument(ExecArgument):
@@ -145,6 +161,17 @@ class ArrayArgument(ExecArgument):
 class ResourceArgument(ExecArgument):
     type: Literal["resource"] = "resource"
     targets: list[ExecutionTarget] | None = None
+    multiple: bool = False
+
+
+class ColorArgument(ExecArgument):
+    type: Literal["color"] = "color"
+    format: Literal["HEX", "HEXA", "RGB", "RGBA", "HSL", "HSLA"] = "HEXA"
+
+
+class ConstantArgument(ExecArgument):
+    type: Literal["constant"] = "constant"
+    value: Any | None = None
 
 
 ExecArguments = (
@@ -155,6 +182,10 @@ ExecArguments = (
     | SelectionArgument
     | ArrayArgument
     | ResourceArgument
+    | ColorArgument
+    | ConstantArgument
+    | DateTimeArgument
+    | DurationArgument
 )
 
 
@@ -164,8 +195,25 @@ class Executor(BaseModel):
     export: str
     name: str
     description: str | None = None
-    targets: list[ExecutionTarget] = []
+    targets: list[ExecutionTarget | list[ExecutionTarget]] | None = None
     arguments: dict[str, ExecArguments] = {}
+
+    def matches_resources(self, *resources: Resource) -> bool:
+        if self.targets == None:
+            return True
+        for resource in resources:
+            if all(
+                [
+                    (
+                        target.matches(resource)
+                        if isinstance(target, ExecutionTarget)
+                        else any([candidate.matches(resource) for candidate in target])
+                    )
+                    for target in self.targets
+                ]
+            ):
+                return True
+        return False
 
 
 class ExecutionManager:

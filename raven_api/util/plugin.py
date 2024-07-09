@@ -145,6 +145,7 @@ class Plugin:
             try:
                 return await manager.get_executors(targets)
             except:
+                print_exc()
                 return []
 
         async with TaskGroup() as group:

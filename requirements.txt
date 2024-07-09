@@ -7,3 +7,5 @@ motor
 redis
 passlib
 argon2_cffi
+iso3166
+language-tags

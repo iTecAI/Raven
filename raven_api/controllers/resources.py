@@ -1,5 +1,5 @@
 import asyncio
-from litestar import Controller, get
+from litestar import Controller, get, post
 from ..util import (
     guard_logged_in,
     PluginLoader,
@@ -8,7 +8,7 @@ from ..util import (
     provide_user,
     guard_scoped,
 )
-from ..common.plugin import Resource
+from ..common.plugin import Resource, Executor
 from ..common.models import User
 from litestar.exceptions import *
 from litestar.di import Provide
@@ -30,6 +30,32 @@ class ResourceController(Controller):
                     if not user.has_scope(f"resources.plugin.{plugin.manifest.slug}.*"):
                         continue
                 tasks.append(group.create_task(plugin.get_resources()))
+
+        results = []
+        for t in tasks:
+            results.extend(t.result())
+        return results
+
+    @post(
+        "/executors",
+        guards=[guard_scoped("resources.all.execute", "resources.plugin.*.execute")],
+    )
+    async def get_executors_for_resources(
+        self, user: User, plugins: PluginLoader, data: list[Resource]
+    ) -> list[Executor]:
+        scoped_all = user.has_scope("resources.all.execute")
+        tasks = []
+
+        async with asyncio.TaskGroup() as group:
+            for plugin in plugins.plugins.values():
+                if not scoped_all:
+                    if not user.has_scope(
+                        f"resources.plugin.{plugin.manifest.slug}.execute"
+                    ):
+                        continue
+                tasks.append(
+                    group.create_task(plugin.get_executors_for_resources(data))
+                )
 
         results = []
         for t in tasks:

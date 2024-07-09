@@ -1,6 +1,7 @@
 import {
     ActionIcon,
     Badge,
+    Button,
     Divider,
     Fieldset,
     Group,
@@ -36,6 +37,7 @@ import { ResourcePropertyIcon } from "./PropertyIcon";
 import { ResourcePropertyRenderer } from "./renderers";
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
+import { ResourceMixin, useApi } from "../../util/api";
 
 export function ResourceModal({
     resource,
@@ -61,9 +63,10 @@ export function ResourceModal({
                     (v[1].label.toLowerCase().includes(search.toLowerCase()) ||
                         search
                             .toLowerCase()
-                            .includes(v[1].label.toLowerCase()))))
+                            .includes(v[1].label.toLowerCase())))),
     );
     const [tab, setTab] = useState<"info" | "properties" | "execute">("info");
+    const api = useApi(ResourceMixin);
     return (
         <Modal
             className="raven-modal resource-modal"
@@ -195,7 +198,7 @@ export function ResourceModal({
                                     />
                                     <Tooltip
                                         label={t(
-                                            "components.resources.modal.properties.hidden"
+                                            "components.resources.modal.properties.hidden",
                                         )}
                                         withArrow
                                     >
@@ -211,7 +214,7 @@ export function ResourceModal({
                                     </Tooltip>
                                     <Tooltip
                                         label={t(
-                                            "components.resources.modal.properties.empty"
+                                            "components.resources.modal.properties.empty",
                                         )}
                                         withArrow
                                     >
@@ -283,6 +286,17 @@ export function ResourceModal({
                             </Stack>
                         </Paper>
                     </Stack>
+                </TabsPanel>
+                <TabsPanel value="execute">
+                    <Button
+                        onClick={() =>
+                            api.methods
+                                .get_executors_for_resource(resource)
+                                .then(console.log)
+                        }
+                    >
+                        Get Executors
+                    </Button>
                 </TabsPanel>
             </Tabs>
         </Modal>

@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any
 from litestar import Controller, get, post
 from ..util import (
     guard_logged_in,
@@ -8,7 +9,7 @@ from ..util import (
     provide_user,
     guard_scoped,
 )
-from ..common.plugin import Resource, Executor
+from ..common.plugin import Resource, Executor, ExecutionTarget, match_execution_targets
 from ..common.models import User
 from litestar.exceptions import *
 from litestar.di import Provide
@@ -61,3 +62,26 @@ class ResourceController(Controller):
         for t in tasks:
             results.extend(t.result())
         return results
+
+    @post("/filtered")
+    async def get_filtered(
+        self,
+        user: User,
+        plugins: PluginLoader,
+        data: Any,
+    ) -> list[Resource]:
+        scoped_all = user.has_scope("resources.all.*")
+        tasks = []
+
+        async with asyncio.TaskGroup() as group:
+            for plugin in plugins.plugins.values():
+                if not scoped_all:
+                    if not user.has_scope(f"resources.plugin.{plugin.manifest.slug}.*"):
+                        continue
+                tasks.append(group.create_task(plugin.get_resources()))
+
+        results = []
+        for t in tasks:
+            results.extend(t.result())
+
+        return [i for i in results if match_execution_targets(data, i)]

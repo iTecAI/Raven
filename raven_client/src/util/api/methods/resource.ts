@@ -1,4 +1,4 @@
-import { Executor } from "../../../types/backend/executor";
+import { ExecutionTarget, Executor } from "../../../types/backend/executor";
 import { Resource } from "../../../types/backend/resource";
 import { data } from "../types";
 import { MixinConstructor } from "./base";
@@ -16,6 +16,18 @@ export function ResourceMixin<TBase extends MixinConstructor>(base: TBase) {
                 await this.request<Executor[]>("/resources/executors", {
                     method: "post",
                     body: resources,
+                }),
+                [],
+            );
+        }
+
+        public async get_resources_by_target(
+            targets: (ExecutionTarget | ExecutionTarget[])[],
+        ): Promise<Resource[]> {
+            return data(
+                await this.request<Resource[]>("/resources/filtered", {
+                    method: "post",
+                    body: targets,
                 }),
                 [],
             );

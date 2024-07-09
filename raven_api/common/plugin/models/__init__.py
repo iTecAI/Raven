@@ -22,4 +22,5 @@ from .executor import (
     ObjectArgument,
     ResourceArgument,
     ExecutionManager,
+    match_execution_targets,
 )

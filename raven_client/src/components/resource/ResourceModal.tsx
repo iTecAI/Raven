@@ -36,8 +36,10 @@ import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 import { ResourcePropertyIcon } from "./PropertyIcon";
 import { ResourcePropertyRenderer } from "./renderers";
 import { useDisclosure } from "@mantine/hooks";
-import { useState } from "react";
-import { ResourceMixin, useApi } from "../../util/api";
+import { useEffect, useState } from "react";
+import { ResourceMixin, useApi, useScoped } from "../../util/api";
+import { Executor } from "../../types/backend/executor";
+import { ExecutorItem } from "../executor/ExecutorItem";
 
 export function ResourceModal({
     resource,
@@ -54,6 +56,7 @@ export function ResourceModal({
     const [showHidden, { toggle: toggleHidden }] = useDisclosure(false);
     const [showEmpty, { toggle: toggleEmpty }] = useDisclosure(true);
     const [search, setSearch] = useState("");
+    const [searchExec, setSearchExec] = useState("");
     const showProps = Object.entries(resource.properties).filter(
         (v) =>
             (showHidden || !v[1].hidden) &&
@@ -67,6 +70,34 @@ export function ResourceModal({
     );
     const [tab, setTab] = useState<"info" | "properties" | "execute">("info");
     const api = useApi(ResourceMixin);
+
+    const [executors, setExecutors] = useState<Executor[]>([]);
+    const canExecute = useScoped(
+        open
+            ? [
+                  "resources.all.execute",
+                  `resources.plugin.${plugin.slug}.execute`,
+              ]
+            : [],
+    );
+
+    useEffect(() => {
+        if (api.state === "ready" && canExecute) {
+            api.methods.get_executors_for_resource(resource).then(setExecutors);
+        } else {
+            setExecutors([]);
+        }
+    }, [resource.id, canExecute, api.state]);
+
+    const showExecs =
+        searchExec.length > 0
+            ? executors.filter(
+                  (v) =>
+                      v.name.toLowerCase().includes(searchExec.toLowerCase()) ||
+                      searchExec.toLowerCase().includes(v.name.toLowerCase()),
+              )
+            : executors;
+
     return (
         <Modal
             className="raven-modal resource-modal"
@@ -110,6 +141,7 @@ export function ResourceModal({
                         {t("components.resources.modal.tab.properties")}
                     </TabsTab>
                     <TabsTab
+                        disabled={!canExecute || executors.length === 0}
                         value="execute"
                         leftSection={<IconPlayerPlayFilled size={20} />}
                     >
@@ -181,122 +213,127 @@ export function ResourceModal({
                     </Stack>
                 </TabsPanel>
                 <TabsPanel value="properties">
-                    <Stack gap={2}>
-                        <Text size="sm" fw={500}>
-                            {t("components.resources.modal.properties_title")}
-                        </Text>
+                    <Stack gap="sm">
+                        <Group gap="sm" wrap="nowrap">
+                            <TextInput
+                                leftSection={<IconSearch size={20} />}
+                                value={search}
+                                onChange={(ev) => setSearch(ev.target.value)}
+                                style={{ flexGrow: 1 }}
+                            />
+                            <Tooltip
+                                label={t(
+                                    "components.resources.modal.properties.hidden",
+                                )}
+                                withArrow
+                            >
+                                <ActionIcon
+                                    variant={showHidden ? "filled" : "light"}
+                                    onClick={toggleHidden}
+                                    size="36"
+                                >
+                                    <IconCode size={20} />
+                                </ActionIcon>
+                            </Tooltip>
+                            <Tooltip
+                                label={t(
+                                    "components.resources.modal.properties.empty",
+                                )}
+                                withArrow
+                            >
+                                <ActionIcon
+                                    variant={showEmpty ? "filled" : "light"}
+                                    onClick={toggleEmpty}
+                                    size="36"
+                                >
+                                    <IconPlaylistX size={20} />
+                                </ActionIcon>
+                            </Tooltip>
+                        </Group>
                         <Paper p="xs" radius="sm" withBorder>
-                            <Stack gap="sm" mah="50vh">
-                                <Group gap="sm" wrap="nowrap">
-                                    <TextInput
-                                        leftSection={<IconSearch size={20} />}
-                                        value={search}
-                                        onChange={(ev) =>
-                                            setSearch(ev.target.value)
-                                        }
-                                        style={{ flexGrow: 1 }}
-                                    />
-                                    <Tooltip
-                                        label={t(
-                                            "components.resources.modal.properties.hidden",
-                                        )}
-                                        withArrow
-                                    >
-                                        <ActionIcon
-                                            variant={
-                                                showHidden ? "filled" : "light"
-                                            }
-                                            onClick={toggleHidden}
-                                            size="36"
-                                        >
-                                            <IconCode size={20} />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                    <Tooltip
-                                        label={t(
-                                            "components.resources.modal.properties.empty",
-                                        )}
-                                        withArrow
-                                    >
-                                        <ActionIcon
-                                            variant={
-                                                showEmpty ? "filled" : "light"
-                                            }
-                                            onClick={toggleEmpty}
-                                            size="36"
-                                        >
-                                            <IconPlaylistX size={20} />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                </Group>
-                                <ScrollAreaAutosize offsetScrollbars>
-                                    <ResponsiveMasonry
-                                        columnsCountBreakPoints={{
-                                            1: 1,
-                                            1200: showProps.length >= 2 ? 2 : 1,
-                                        }}
-                                    >
-                                        <Masonry gutter="12px">
-                                            {showProps.map(([key, prop]) => (
-                                                <Paper
-                                                    className="paper-light"
-                                                    p="sm"
-                                                    radius="sm"
-                                                    shadow="sm"
-                                                    key={key}
-                                                >
-                                                    <Stack gap="sm">
-                                                        <Group gap="sm">
-                                                            {prop.icon ? (
-                                                                <DynamicIcon
-                                                                    icon={
-                                                                        prop.icon as string
-                                                                    }
-                                                                    size={20}
-                                                                />
-                                                            ) : (
-                                                                <ResourcePropertyIcon
-                                                                    type={
-                                                                        prop.type
-                                                                    }
-                                                                    size={20}
-                                                                />
-                                                            )}
-                                                            <Stack gap={0}>
-                                                                <Text size="sm">
-                                                                    {prop.label}
-                                                                </Text>
-                                                                <Badge
-                                                                    size="xs"
-                                                                    variant="light"
-                                                                >
-                                                                    {prop.type}
-                                                                </Badge>
-                                                            </Stack>
-                                                        </Group>
-                                                        <ResourcePropertyRenderer
-                                                            property={prop}
-                                                        />
-                                                    </Stack>
-                                                </Paper>
-                                            ))}
-                                        </Masonry>
-                                    </ResponsiveMasonry>
-                                </ScrollAreaAutosize>
-                            </Stack>
+                            <ScrollAreaAutosize mah="50vh">
+                                <ResponsiveMasonry
+                                    columnsCountBreakPoints={{
+                                        1: 1,
+                                        1200: showProps.length >= 2 ? 2 : 1,
+                                    }}
+                                >
+                                    <Masonry gutter="12px">
+                                        {showProps.map(([key, prop]) => (
+                                            <Paper
+                                                className="paper-light"
+                                                p="sm"
+                                                radius="sm"
+                                                shadow="sm"
+                                                key={key}
+                                            >
+                                                <Stack gap="sm">
+                                                    <Group gap="sm">
+                                                        {prop.icon ? (
+                                                            <DynamicIcon
+                                                                icon={
+                                                                    prop.icon as string
+                                                                }
+                                                                size={20}
+                                                            />
+                                                        ) : (
+                                                            <ResourcePropertyIcon
+                                                                type={prop.type}
+                                                                size={20}
+                                                            />
+                                                        )}
+                                                        <Stack gap={0}>
+                                                            <Text size="sm">
+                                                                {prop.label}
+                                                            </Text>
+                                                            <Badge
+                                                                size="xs"
+                                                                variant="light"
+                                                            >
+                                                                {prop.type}
+                                                            </Badge>
+                                                        </Stack>
+                                                    </Group>
+                                                    <ResourcePropertyRenderer
+                                                        property={prop}
+                                                    />
+                                                </Stack>
+                                            </Paper>
+                                        ))}
+                                    </Masonry>
+                                </ResponsiveMasonry>
+                            </ScrollAreaAutosize>
                         </Paper>
                     </Stack>
                 </TabsPanel>
                 <TabsPanel value="execute">
-                    <Button
-                        onClick={() =>
-                            api.methods
-                                .get_executors_for_resource(resource)
-                                .then(console.log)
-                        }
-                    >
-                        Get Executors
-                    </Button>
+                    <Stack gap="sm">
+                        <TextInput
+                            leftSection={<IconSearch size={20} />}
+                            value={searchExec}
+                            onChange={(ev) => setSearchExec(ev.target.value)}
+                        />
+                        <Paper p="xs" radius="sm" withBorder>
+                            <ScrollAreaAutosize mah="50vh">
+                                <ResponsiveMasonry
+                                    columnsCountBreakPoints={{
+                                        1: 1,
+                                        1200: showExecs.length >= 2 ? 2 : 1,
+                                    }}
+                                >
+                                    <Masonry gutter="12px">
+                                        {showExecs.map((executor) => (
+                                            <ExecutorItem
+                                                resource={resource}
+                                                executor={executor}
+                                                key={executor.id}
+                                            />
+                                        ))}
+                                    </Masonry>
+                                </ResponsiveMasonry>
+                            </ScrollAreaAutosize>
+                        </Paper>
+                    </Stack>
                 </TabsPanel>
             </Tabs>
         </Modal>

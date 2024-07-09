@@ -55,6 +55,19 @@ export interface ExecutionTarget {
     } | null;
 }
 
+export type ExecArgumentType =
+    | BooleanArgument
+    | StringArgument
+    | NumberArgument
+    | ObjectArgument
+    | SelectionArgument
+    | ArrayArgument
+    | ResourceArgument
+    | ColorArgument
+    | ConstantArgument
+    | DatetimeArgument
+    | DurationArgument;
+
 export interface Executor {
     id: string;
     plugin: string;
@@ -63,18 +76,7 @@ export interface Executor {
     description?: string | null;
     targets?: (ExecutionTarget | ExecutionTarget[])[] | null;
     arguments?: {
-        [k: string]:
-            | BooleanArgument
-            | StringArgument
-            | NumberArgument
-            | ObjectArgument
-            | SelectionArgument
-            | ArrayArgument
-            | ResourceArgument
-            | ColorArgument
-            | ConstantArgument
-            | DatetimeArgument
-            | DurationArgument;
+        [k: string]: ExecArgumentType;
     };
 }
 

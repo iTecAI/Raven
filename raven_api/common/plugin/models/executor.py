@@ -189,6 +189,24 @@ ExecArguments = (
 )
 
 
+def match_execution_targets(
+    targets: list[ExecutionTarget | list[ExecutionTarget]], resources: list[Resource]
+) -> bool:
+    for resource in resources:
+        if all(
+            [
+                (
+                    target.matches(resource)
+                    if isinstance(target, ExecutionTarget)
+                    else any([candidate.matches(resource) for candidate in target])
+                )
+                for target in targets
+            ]
+        ):
+            return True
+    return False
+
+
 class Executor(BaseModel):
     id: str
     plugin: str
@@ -201,19 +219,7 @@ class Executor(BaseModel):
     def matches_resources(self, *resources: Resource) -> bool:
         if self.targets == None:
             return True
-        for resource in resources:
-            if all(
-                [
-                    (
-                        target.matches(resource)
-                        if isinstance(target, ExecutionTarget)
-                        else any([candidate.matches(resource) for candidate in target])
-                    )
-                    for target in self.targets
-                ]
-            ):
-                return True
-        return False
+        return match_execution_targets(self.targets, resources)
 
 
 class ExecutionManager:

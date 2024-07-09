@@ -151,15 +151,24 @@ export function useScopeMatch(...scopes: string[]): {
 } {
     const scopeCheck = scopes.join(":");
     const [result, setResult] = useState<{ [key: string]: boolean }>(
-        scopes.reduce((prev, cur) => ({ ...prev, [cur]: null }), {})
+        scopes.reduce((prev, cur) => ({ ...prev, [cur]: null }), {}),
     );
     const api = useApi(ScopeMixin);
 
     useEffect(() => {
+        if (scopes.length === 0) {
+            setResult(
+                scopes.reduce((prev, cur) => ({ ...prev, [cur]: null }), {}),
+            );
+            return;
+        }
         if (api.auth?.user?.id) {
             if (api.auth.user.admin) {
                 setResult(
-                    scopes.reduce((prev, cur) => ({ ...prev, [cur]: true }), {})
+                    scopes.reduce(
+                        (prev, cur) => ({ ...prev, [cur]: true }),
+                        {},
+                    ),
                 );
                 return;
             }
@@ -170,13 +179,13 @@ export function useScopeMatch(...scopes: string[]): {
                             ...prev,
                             [crKey]: crVal === null ? null : crVal.length > 0,
                         }),
-                        {}
-                    )
-                )
+                        {},
+                    ),
+                ),
             );
         } else {
             setResult(
-                scopes.reduce((prev, cur) => ({ ...prev, [cur]: null }), {})
+                scopes.reduce((prev, cur) => ({ ...prev, [cur]: null }), {}),
             );
         }
     }, [scopeCheck, api.auth?.user?.id, api.state]);
@@ -186,8 +195,11 @@ export function useScopeMatch(...scopes: string[]): {
 
 export function useScoped(scopes: string[], all?: boolean): boolean {
     const matched = Object.values(useScopeMatch(...scopes)).filter(
-        (v) => v === null || v === true
+        (v) => v === null || v === true,
     );
+    if (scopes.length === 0) {
+        return false;
+    }
     if (all) {
         return matched.length === scopes.length;
     } else {

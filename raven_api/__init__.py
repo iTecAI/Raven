@@ -60,7 +60,8 @@ async def app_lifecycle(app: Litestar) -> AsyncGenerator[None, None]:
                 await created.save()
 
         app.state["context"] = context
-        yield
+        async with plugins.event_listeners(app):
+            yield
 
 
 def plain_text_exception_handler(req: Request, exc: Exception) -> Response:
@@ -97,4 +98,5 @@ app = Litestar(
     middleware=[CookieSessionManager],
     logging_config=app_logs,
     exception_handlers={500: plain_text_exception_handler},
+    listeners=[listen_core_events],
 )

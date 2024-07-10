@@ -1,4 +1,4 @@
-from asyncio import Task, TaskGroup
+from asyncio import Task, TaskGroup, create_task
 from contextlib import asynccontextmanager
 import json
 from logging import Logger
@@ -6,6 +6,8 @@ import os
 from traceback import print_exc
 from types import ModuleType
 from typing import Any, Callable, ItemsView, Literal, Type, TypedDict
+from h11 import Event
+from litestar import Litestar
 from pydantic import BaseModel
 from ..common.plugin import (
     PluginManifest,
@@ -16,6 +18,8 @@ from ..common.plugin import (
     Resource,
     ExecutionManager,
     Executor,
+    EVENT_TYPES,
+    EVENTS,
 )
 from ..common.models import Config
 import importlib.util
@@ -82,7 +86,7 @@ class Plugin:
         return self._record["module"]
 
     def exports(
-        self, *types: Literal["resource", "lifecycle", "executor"]
+        self, *types: Literal["resource", "lifecycle", "executor", "event"]
     ) -> dict[str, EXPORTS]:
         return {
             k: v
@@ -193,6 +197,28 @@ class Plugin:
                     return None
         return None
 
+    async def activate_listeners(self, app: Litestar) -> list[Task]:
+        listeners = self.exports("event")
+        tasks = []
+        for export_key, export in listeners.items():
+            listener = self.resolve_export(export_key)
+            kwargs = {
+                k: self.loader.lifecycle.get(self.manifest.slug, v)
+                for k, v in export.kwargs.items()
+            }
+            tasks.append(
+                create_task(
+                    listener(
+                        emit=EVENTS.make_emitter(
+                            app, source=self.manifest.slug + ":" + export_key
+                        ),
+                        **kwargs,
+                    )
+                )
+            )
+
+        return tasks
+
 
 class PluginLoader:
 
@@ -284,3 +310,15 @@ class PluginLoader:
 
     def keys(self) -> list[str]:
         return list(self._plugins.keys())
+
+    @asynccontextmanager
+    async def event_listeners(self, app: Litestar):
+        tasks: list[Task] = []
+        for plugin in self.plugins.values():
+            tasks.extend(await plugin.activate_listeners(app))
+
+        try:
+            yield
+        finally:
+            for task in tasks:
+                task.cancel()

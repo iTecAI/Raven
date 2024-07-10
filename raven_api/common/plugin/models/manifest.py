@@ -1,6 +1,7 @@
+from enum import StrEnum
 from inspect import ismodule
 from types import ModuleType
-from typing import Literal
+from typing import Any, Callable, Literal
 from pydantic import BaseModel
 from .executor import ExecutionManager
 
@@ -56,7 +57,12 @@ class ExecutorExport(BaseExport):
         return super().resolve(base)
 
 
-EXPORTS = LifecycleExport | ResourceExport | ExecutorExport
+class EventExport(BaseExport):
+    type: Literal["event"]
+    kwargs: dict[str, str | Literal["config"]] = {}
+
+
+EXPORTS = LifecycleExport | ResourceExport | ExecutorExport | EventExport
 
 class PluginManifest(BaseModel):
     slug: str

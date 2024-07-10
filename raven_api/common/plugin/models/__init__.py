@@ -5,6 +5,7 @@ from .manifest import (
     LifecycleExport,
     ResourceExport,
     ExecutorExport,
+    EventExport,
     EXPORTS,
 )
 from .lifecycle import LifecycleContext
@@ -24,3 +25,4 @@ from .executor import (
     ExecutionManager,
     match_execution_targets,
 )
+from .event import EventRegistry, EVENTS, BaseEvent, ResourceUpdateEvent, EVENT_TYPES

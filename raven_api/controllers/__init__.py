@@ -3,12 +3,14 @@ from ..common.models import Session, AuthState
 from .auth import AuthController, AuthScopesController
 from .plugins import PluginsController
 from .resources import ResourceController
+from .events import EventController
 
 CONTROLLERS = [
     AuthController,
     AuthScopesController,
     PluginsController,
     ResourceController,
+    EventController,
 ]
 
 @get("/")

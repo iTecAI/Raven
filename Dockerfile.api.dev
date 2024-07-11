@@ -13,4 +13,4 @@ WORKDIR /raven
 RUN python -m pip install -r requirements.txt --upgrade --no-cache
 EXPOSE 8000/tcp
 
-ENTRYPOINT [ "litestar", "--app", "raven_api:app", "run", "--reload", "--host", "0.0.0.0", "--ssl-certfile", "/raven/certs/api/cert.pem", "--ssl-keyfile", "/raven/certs/api/key.pem", "--reload-include", "config.toml" ]
+ENTRYPOINT [ "uvicorn", "--reload", "--host", "0.0.0.0", "--ssl-certfile", "/raven/certs/api/cert.pem", "--ssl-keyfile", "/raven/certs/api/key.pem", "--reload-include", "config.toml", "--timeout-graceful-shutdown", "0", "--lifespan", "on", "raven_api:app" ]

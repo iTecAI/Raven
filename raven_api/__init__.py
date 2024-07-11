@@ -1,13 +1,16 @@
+import asyncio
 from contextlib import asynccontextmanager
+import logging
 import tomllib
-from typing import AsyncGenerator
+from traceback import format_exc
+from typing import AsyncGenerator, Coroutine
 from litestar import Litestar, MediaType, Request, Response
 from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 from .common.models import Config, DOCUMENT_MODELS, User
 from .util import *
 from redis.asyncio import Redis
 from litestar.channels import ChannelsPlugin
-from litestar.channels.backends.redis import RedisChannelsPubSubBackend
+from litestar.channels.backends.memory import MemoryChannelsBackend
 from litestar.di import Provide
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -69,11 +72,7 @@ def plain_text_exception_handler(req: Request, exc: Exception) -> Response:
     status_code = getattr(exc, "status_code", HTTP_500_INTERNAL_SERVER_ERROR)
     detail = getattr(exc, "detail", "")
     req.logger.exception("Encountered a server error:")
-    return Response(
-        media_type=MediaType.TEXT,
-        content=detail,
-        status_code=status_code,
-    )
+    return Response(media_type=MediaType.TEXT, content=detail, status_code=status_code)
 
 
 app = Litestar(
@@ -81,10 +80,8 @@ app = Litestar(
     lifespan=[app_lifecycle],
     plugins=[
         ChannelsPlugin(
-            RedisChannelsPubSubBackend(redis=REDIS),
+            MemoryChannelsBackend(),
             arbitrary_channels_allowed=True,
-            create_ws_route_handlers=True,
-            ws_handler_base_path="/api/events",
         )
     ],
     state=State({}),

@@ -1,8 +1,8 @@
 from datetime import UTC, datetime
 from traceback import print_exc
-from typing import Any, Literal, Type, TypeVar
+from typing import Any, ClassVar, Literal, Type, TypeVar
 from uuid import uuid4
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from litestar import Litestar
 
 TEvent = TypeVar("TEvent", bound="BaseEvent")
@@ -24,7 +24,12 @@ class EventRegistry:
         return register_inner
 
     def make_emitter(self, app: Litestar, listener: str = "core", source: str = "core"):
-        def emit(path: str, data: dict[str, Any]) -> None:
+
+        def emit(
+            path: str,
+            data: dict[str, Any],
+            scopes: list[str] | Literal["global"] = "global",
+        ) -> None:
             try:
                 event = self.events.get(path, None)
                 if event:
@@ -33,6 +38,7 @@ class EventRegistry:
                         source=source,
                         path=path,
                         emitted=datetime.now(UTC),
+                        scope=scopes,
                         **data
                     )
                     app.emit(listener, event=event_obj, app=app)
@@ -40,6 +46,15 @@ class EventRegistry:
                 print_exc()
 
         return emit
+
+    def __call__(self, data: dict[str, Any]) -> "EVENT_TYPES | None":
+        if "path" in data.keys():
+            if data["path"] in self.events.keys():
+                try:
+                    return self.events[data["path"]](**data)
+                except:
+                    return None
+        return None
 
 
 EVENTS = EventRegistry()
@@ -49,7 +64,12 @@ class BaseEvent(BaseModel):
     id: str = None
     path: str
     source: Literal["core"] | str = None
+    scope: list[str] | Literal["global"] = "global"
     emitted: datetime = None
+
+    @property
+    def is_global(self) -> bool:
+        return self.scope == "global"
 
 
 @EVENTS.register("resource.update")

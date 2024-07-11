@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 from passlib.hash import argon2
-from beanie import ValidateOnSave, before_event
+from beanie import ValidateOnSave, before_event, Delete
 from pydantic import BaseModel
 from .base import BaseObject
 from .scope import Scope, DEFAULT_SCOPES
@@ -37,6 +37,14 @@ class RedactedUser(BaseModel):
     scopes: list[str]
 
 
+class EventContext(BaseObject):
+    session_id: str
+    subscriptions: list[str] = []
+
+    class Settings:
+        name = "auth.session.subscriptions"
+
+
 class Session(BaseObject):
     user_id: str | None = None
     last_request: datetime
@@ -52,6 +60,10 @@ class Session(BaseObject):
     def update_rq(self):
         self.last_request = datetime.now(UTC)
 
+    @before_event(Delete)
+    async def remove_event_ctx(self):
+        await EventContext.find({"session_id": self.id}).delete()
+
     async def user(self) -> "User | None":
         if self.user_id:
             return await User.get(self.user_id)
@@ -60,6 +72,14 @@ class Session(BaseObject):
     async def get_authstate(self) -> "AuthState":
         user = await self.user()
         return AuthState(session=self, user=user.redacted if user else None)
+
+    async def get_event_context(self) -> EventContext:
+        existing = await EventContext.find_one({"session_id": self.id})
+        if not existing:
+            ctx = EventContext(session_id=self.id)
+            await ctx.save()
+            return ctx
+        return existing
 
 
 class User(BaseObject):

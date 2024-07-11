@@ -23,7 +23,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { AuthMixin, useApi, useScoped } from "../../util/api";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useCallback, useEffect } from "react";
+import { Event, useEvent } from "../../util/events";
 
 function NavItem({
     icon,
@@ -63,6 +64,10 @@ export function Layout() {
     ]);
     const resourceScoped = useScoped(["resources.*"]);
     const pipelineScoped = useScoped(["pipelines.*"]);
+    const listener = useCallback((event: Event) => {
+        console.log("EVENT:", event);
+    }, []);
+    useEvent("resource.update", listener);
 
     useEffect(() => {
         if (state === "ready" && !auth?.user) {

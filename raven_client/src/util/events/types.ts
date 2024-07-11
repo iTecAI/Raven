@@ -6,6 +6,7 @@ export type Event<TData = any> = {
     type: string;
     channel: "global" | "session";
     data: TData;
+    subscribers: string[];
 };
 
 export type EventContextType = {

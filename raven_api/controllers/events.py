@@ -24,6 +24,15 @@ class RemoveSubscriptionsCommand(BaseModel):
 COMMANDS = AddSubscriptionsCommand | RemoveSubscriptionsCommand
 
 
+class FrontendEvent(BaseModel):
+    id: str
+    source: str
+    type: str
+    channel: Literal["global", "session"]
+    data: Any
+    subscribers: list[str]
+
+
 def command(obj: Any) -> COMMANDS | None:
     if isinstance(obj, dict) and "command" in obj.keys():
         constructors: dict[str, Type[COMMANDS]] = {
@@ -31,7 +40,7 @@ def command(obj: Any) -> COMMANDS | None:
             for arg in get_args(COMMANDS)
         }
         try:
-            return constructors[obj["command"]](**command)
+            return constructors[obj["command"]](**obj)
         except:
             return None
     return None
@@ -62,22 +71,45 @@ class EventController(Controller):
     ):
         async with channels.start_subscription("events") as subscriber:
             async for message in subscriber.iter_events():
-                socket.logger.info(message)
                 try:
                     decoded = json.loads(message)
                     event = EVENTS(decoded)
-                    socket.app.logger.info(event)
                     if event:
                         context = await session.get_event_context()
-                        if len(glob_match(event.path, context.subscriptions)) > 0:
+                        matches = glob_match(event.path, context.subscriptions)
+                        if len(matches) > 0:
+                            normalized_event = FrontendEvent(
+                                id=event.id,
+                                source=event.source,
+                                type=event.path,
+                                channel=(
+                                    "global" if event.scope == "global" else "session"
+                                ),
+                                data={
+                                    k: v
+                                    for k, v in event.model_dump(mode="json").items()
+                                    if not k
+                                    in [
+                                        "id",
+                                        "source",
+                                        "scope",
+                                        "path",
+                                        "emitted",
+                                        "is_global",
+                                    ]
+                                },
+                                subscribers=matches,
+                            )
                             if event.scope == "global":
-                                await socket.send_json(event.model_dump(mode="json"))
+                                await socket.send_json(
+                                    normalized_event.model_dump(mode="json")
+                                )
                             else:
                                 if session.user_id:
                                     user = await session.user()
                                     if user.has_scope(*event.scope):
                                         await socket.send_json(
-                                            event.model_dump(mode="json")
+                                            normalized_event.model_dump(mode="json")
                                         )
                 except json.JSONDecodeError:
                     print_exc()
@@ -94,11 +126,13 @@ class EventController(Controller):
             await socket.close(
                 code=WS_1008_POLICY_VIOLATION, reason="Valid session token required"
             )
-
-        async with TaskGroup() as group:
-            group.create_task(self.handle_commands(socket, session))
-            group.create_task(self.handle_messages(socket, session, channels))
         try:
-            await socket.close()
+            async with TaskGroup() as group:
+                group.create_task(self.handle_commands(socket, session))
+                group.create_task(self.handle_messages(socket, session, channels))
+            try:
+                await socket.close()
+            except:
+                pass
         except:
             pass

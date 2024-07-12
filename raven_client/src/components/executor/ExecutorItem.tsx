@@ -180,7 +180,11 @@ function ExecutionField({
             return (
                 <ColorInput
                     format={(field.format ?? "RGB").toLowerCase() as any}
-                    value={value ?? ""}
+                    value={
+                        value && value.join && value.filter
+                            ? `${(field.format ?? "RGB").toLowerCase()}(${value.filter((v: any) => v !== undefined).join(", ")})`
+                            : ""
+                    }
                     leftSection={
                         <DynamicIcon
                             icon={field.icon ?? "palette"}
@@ -188,7 +192,24 @@ function ExecutionField({
                             size={20}
                         />
                     }
-                    {...omit(genericProps, "value")}
+                    {...omit(genericProps, "value", "onChange")}
+                    onChange={(value) => {
+                        const match = new RegExp(
+                            /[a-z]{3,4}\((?<red>[0-9]+),\s*(?<green>[0-9]+),\s*(?<blue>[0-9]+)(?:,\s*(?<alpha>[0-9.]+))?\)/,
+                        ).exec(value);
+                        if (match && match.groups) {
+                            onChange(
+                                [
+                                    match.groups.red,
+                                    match.groups.green,
+                                    match.groups.blue,
+                                    match.groups.alpha,
+                                ].filter((v) => v !== undefined),
+                            );
+                        } else {
+                            onChange(null);
+                        }
+                    }}
                 />
             );
         case "constant":

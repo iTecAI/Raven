@@ -2,6 +2,7 @@ import { createContext } from "react";
 
 export type Event<TData = any> = {
     id: string;
+    plugin: string | null;
     source: string;
     type: string;
     channel: "global" | "session";

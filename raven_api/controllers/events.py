@@ -6,7 +6,7 @@ from typing import Any, Literal, Type, get_args
 from litestar import Controller, WebSocket, websocket
 from litestar.status_codes import *
 from litestar.channels import ChannelsPlugin
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from ..common.models import Session, glob_match
 from ..common.plugin import EVENTS
 
@@ -31,6 +31,14 @@ class FrontendEvent(BaseModel):
     channel: Literal["global", "session"]
     data: Any
     subscribers: list[str]
+
+    @computed_field
+    @property
+    def plugin(self) -> str | None:
+        if self.source == "core":
+            return None
+        else:
+            return self.source.split(":")[0]
 
 
 def command(obj: Any) -> COMMANDS | None:

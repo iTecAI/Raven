@@ -13,13 +13,22 @@ import { IconDotsVertical, IconPuzzle } from "@tabler/icons-react";
 import { ResourcePropertyIcon } from "../../components/resource/PropertyIcon";
 import { ResourcePropertyRenderer } from "../../components/resource/renderers";
 import { ResourceModal } from "../../components/resource/ResourceModal";
+import { useResource, useResources } from "../../util/resources";
 
 const ResourceItem = memo(
-    ({ resource, plugin }: { resource: Resource; plugin: PluginManifest }) => {
+    ({
+        resource_id,
+        plugin,
+    }: {
+        resource_id: string;
+        plugin: PluginManifest;
+    }) => {
+        const resource = useResource(resource_id);
+
         const { t } = useTranslation();
         const [options, { close: closeModal, open: openModal }] =
             useDisclosure(false);
-        return (
+        return resource ? (
             <Paper
                 p="sm"
                 className="paper-light resource-item"
@@ -138,23 +147,20 @@ const ResourceItem = memo(
                     </Paper>
                 </Stack>
             </Paper>
+        ) : (
+            <></>
         );
-    }
+    },
 );
 
 export function ResourceView() {
     const canView = useScoped(["resources.*"]);
-    const canExecute = useScoped([
-        "resources.all.execute",
-        "resources.plugin.*.execute",
-    ]);
     const api = useApi(ResourceMixin, PluginMixin);
     const { t } = useTranslation();
     const nav = useNavigate();
 
-    const [resources, resourceMethods] = useListState<Resource>([]);
     const [plugins, setPlugins] = useState<{ [key: string]: PluginManifest }>(
-        {}
+        {},
     );
 
     const loadPlugins = useCallback(() => {
@@ -165,17 +171,7 @@ export function ResourceView() {
         }
     }, [api.state, api.auth?.user?.id, canView, setPlugins]);
 
-    const loadResources = useCallback(() => {
-        if (api.auth?.user?.id && canView) {
-            api.methods.list_resources().then(resourceMethods.setState);
-        } else {
-            resourceMethods.setState([]);
-        }
-    }, [api.state, api.auth?.user?.id, resourceMethods.setState, canView]);
-
-    useEffect(() => {
-        loadResources();
-    }, [loadResources]);
+    const resources = useResources();
 
     useEffect(() => {
         loadPlugins();
@@ -221,13 +217,15 @@ export function ResourceView() {
             }}
         >
             <Masonry gutter="12px">
-                {resources.map((resource) => (
-                    <ResourceItem
-                        resource={resource}
-                        plugin={plugins[resource.plugin]}
-                        key={`${resource.plugin}:${resource.id}`}
-                    />
-                ))}
+                {resources
+                    .filter((v) => plugins[v.plugin] !== undefined)
+                    .map((resource) => (
+                        <ResourceItem
+                            resource_id={resource.id}
+                            plugin={plugins[resource.plugin]}
+                            key={`${resource.plugin}:${resource.id}`}
+                        />
+                    ))}
             </Masonry>
         </ResponsiveMasonry>
     );

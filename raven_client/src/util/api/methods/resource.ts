@@ -9,6 +9,18 @@ export function ResourceMixin<TBase extends MixinConstructor>(base: TBase) {
             return data(await this.request<Resource[]>("/resources"), []);
         }
 
+        public async get_resource(
+            plugin: string,
+            id: string,
+        ): Promise<Resource | null> {
+            return data(
+                await this.request<Resource>(
+                    `/resources/single/${plugin}/${id}`,
+                ),
+                null,
+            );
+        }
+
         public async get_executors_for_resource(
             ...resources: Resource[]
         ): Promise<Executor[]> {

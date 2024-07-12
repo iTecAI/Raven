@@ -4,6 +4,7 @@ from types import ModuleType
 from typing import Any, Callable, Literal
 from pydantic import BaseModel
 from .executor import ExecutionManager
+from .resource import ResourceResolver
 
 class PluginDependency(BaseModel):
     name: str
@@ -45,8 +46,10 @@ class LifecycleExport(BaseExport):
 
 class ResourceExport(BaseExport):
     type: Literal["resource"]
-    is_async: bool = False
     kwargs: dict[str, str | Literal["config"]] = {}
+
+    def resolve(self, base: ModuleType) -> ResourceResolver:
+        return super().resolve(base)
 
 
 class ExecutorExport(BaseExport):

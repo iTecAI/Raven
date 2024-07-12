@@ -20,6 +20,7 @@ from ..common.plugin import (
     Executor,
     EVENT_TYPES,
     EVENTS,
+    ResourceResolver,
 )
 from ..common.models import Config
 import importlib.util
@@ -107,20 +108,36 @@ class Plugin:
         return None
 
     async def get_resources(self) -> list[Resource]:
-        resource_exports = self.exports("resource")
+        resource_exports: dict[str, ResourceExport] = self.exports("resource")
         results = []
         for export_key, export in resource_exports.items():
-            resource_function = self.resolve_export(export_key)
-            if resource_function:
+            resource_resolver = self.resolve_export(
+                export_key, _exported=Type[ResourceResolver]
+            )
+            if resource_resolver:
                 kwargs = {
                     k: self.loader.lifecycle.get(self.manifest.slug, v)
                     for k, v in export.kwargs.items()
                 }
-                if export.is_async:
-                    results.extend(await resource_function(**kwargs))
-                else:
-                    results.extend(resource_function(**kwargs))
+                results.extend(await resource_resolver(**kwargs).get_all())
         return results
+
+    async def get_resource(self, id: str) -> Resource | None:
+        resource_exports: dict[str, ResourceExport] = self.exports("resource")
+        for export_key, export in resource_exports.items():
+            resource_resolver = self.resolve_export(
+                export_key, _exported=Type[ResourceResolver]
+            )
+            if resource_resolver:
+                kwargs = {
+                    k: self.loader.lifecycle.get(self.manifest.slug, v)
+                    for k, v in export.kwargs.items()
+                }
+                found = await resource_resolver(**kwargs).get_one(id)
+                if found:
+                    return found
+
+        return None
 
     @property
     def execution_managers(self) -> list[ExecutionManager]:

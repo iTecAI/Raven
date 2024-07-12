@@ -107,3 +107,19 @@ class ResourceController(Controller):
             await plugin.call_executor(data.executor, data.args, data.target)
             return None
         raise NotAuthorizedException("Insufficient scope to execute")
+
+    @get(
+        path="/single/{plugin_name:str}/{resource_id:str}",
+        guards=[guard_scoped("resources.all.execute", "resources.plugin.*.execute")],
+    )
+    async def get_single_resource(
+        self, user: User, plugins: PluginLoader, plugin_name: str, resource_id: str
+    ) -> Resource:
+        if user.has_scope("resources.all.*", f"resources.plugin.{plugin_name}.*"):
+            plugin = plugins.get(plugin_name)
+            if plugin:
+                result = await plugin.get_resource(resource_id)
+                if result:
+                    return result
+            raise NotFoundException("Unknown plugin/resource")
+        raise NotAuthorizedException("Insufficient scope to execute")

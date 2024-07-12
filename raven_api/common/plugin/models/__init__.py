@@ -9,7 +9,13 @@ from .manifest import (
     EXPORTS,
 )
 from .lifecycle import LifecycleContext
-from .resource import Resource, ResourceMetadata, ResourceProperty, ResourcePropertyType
+from .resource import (
+    Resource,
+    ResourceMetadata,
+    ResourceProperty,
+    ResourcePropertyType,
+    ResourceResolver,
+)
 from .executor import (
     ExecArguments,
     ExecArgument,

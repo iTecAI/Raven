@@ -1,7 +1,6 @@
 litestar[standard]
 pydantic
 uvicorn
-git+https://github.com/raven-automation/raven-hass.git
 beanie
 motor
 redis
@@ -9,3 +8,4 @@ passlib
 argon2_cffi
 iso3166
 language-tags
+git+https://github.com/raven-automation/raven-hass.git

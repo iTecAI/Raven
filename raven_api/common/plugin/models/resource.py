@@ -57,3 +57,14 @@ class Resource(BaseModel):
     metadata: ResourceMetadata = ResourceMetadata()
     properties: dict[str, ResourceProperty]
     state_key: str
+
+
+class ResourceResolver:
+    def __init__(self, **kwargs) -> None:
+        pass
+
+    async def get_all(self) -> list[Resource]:
+        return []
+
+    async def get_one(self, id: str) -> Resource | None:
+        return None

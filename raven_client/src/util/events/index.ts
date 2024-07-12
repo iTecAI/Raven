@@ -10,7 +10,7 @@ export function useEvent<TData = any>(
     const { subscribe, unsubscribe } = useContext(EventContext);
 
     useEffect(() => {
-        subscribe(path, callback);
-        return () => unsubscribe(path);
+        const subid = subscribe(path, callback);
+        return () => unsubscribe({ channel: path, id: subid });
     }, [path, callback]);
 }

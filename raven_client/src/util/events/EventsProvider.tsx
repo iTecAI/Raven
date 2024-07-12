@@ -1,10 +1,12 @@
 import { ReactNode, useEffect, useMemo } from "react";
 import { useApi } from "../api";
 import { Event, EventContext } from "./types";
-import { omit } from "lodash";
+import { isArray, omit, uniqueId } from "lodash";
 
 class EventManager {
-    public subscriptions: { [key: string]: (event: Event) => void };
+    public subscriptions: {
+        [key: string]: { id: string; callback: (event: Event) => void }[];
+    };
     private socket: WebSocket | null;
     public active: boolean;
 
@@ -27,7 +29,7 @@ class EventManager {
         if (parsed.subscribers) {
             for (const sub of parsed.subscribers) {
                 if (Object.keys(this.subscriptions).includes(sub)) {
-                    this.subscriptions[sub](parsed);
+                    this.subscriptions[sub].map((i) => i.callback(parsed));
                 }
             }
         }
@@ -70,8 +72,15 @@ class EventManager {
         this.socket = null;
     }
 
-    public subscribe(channel: string, callback: (event: Event) => void) {
-        this.subscriptions[channel] = callback;
+    public subscribe(
+        channel: string,
+        callback: (event: Event) => void,
+    ): string {
+        if (!isArray(this.subscriptions[channel])) {
+            this.subscriptions[channel] = [];
+        }
+        const id = uniqueId();
+        this.subscriptions[channel].push({ id, callback });
         if (this.connected) {
             this.socket?.send(
                 JSON.stringify({
@@ -80,15 +89,28 @@ class EventManager {
                 }),
             );
         }
+        return id;
     }
 
-    public unsubscribe(...channels: string[]) {
-        this.subscriptions = omit(this.subscriptions, ...channels);
-        if (this.connected) {
+    public unsubscribe(...subscriptions: { channel: string; id: string }[]) {
+        const unsubscribeFrom: string[] = [];
+        for (const sub of subscriptions) {
+            if (isArray(this.subscriptions[sub.channel])) {
+                this.subscriptions[sub.channel] = this.subscriptions[
+                    sub.channel
+                ].filter((v) => v.id !== sub.id);
+                if (this.subscriptions[sub.channel].length === 0) {
+                    this.subscriptions = omit(this.subscriptions, sub.channel);
+                    unsubscribeFrom.push(sub.channel);
+                }
+            }
+        }
+
+        if (this.connected && unsubscribeFrom.length > 0) {
             this.socket?.send(
                 JSON.stringify({
                     command: "subscriptions.remove",
-                    paths: channels,
+                    paths: unsubscribeFrom,
                 }),
             );
         }

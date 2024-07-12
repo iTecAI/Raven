@@ -135,7 +135,7 @@ function ExecutionField({
     const genericProps = {
         label: field.label ?? undefined,
         placeholder: field.placeholder ?? undefined,
-        value: value,
+        value: value ?? "",
         onChange: onChange,
         withAsterisk: field.required,
         description: field.description,

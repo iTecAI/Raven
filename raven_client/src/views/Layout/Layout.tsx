@@ -78,7 +78,6 @@ export function Layout() {
                 breakpoint: "sm",
                 collapsed: { mobile: !opened },
             }}
-            padding="md"
             className="app-root"
         >
             <AppShell.Header className="app-header">

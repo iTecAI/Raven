@@ -231,7 +231,7 @@ export function ResourceView() {
     const actualFilterValue = mobile ? [] : filters;
 
     return (
-        <Stack gap="md" className="resource-view">
+        <Stack gap="md" className="resource-view" p="md">
             <Group gap="sm" wrap="nowrap" className="resource-menu">
                 <TextInput
                     leftSection={<IconSearch size={20} />}

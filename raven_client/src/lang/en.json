@@ -60,6 +60,14 @@
           "plugin": "Plugins"
         }
       }
+    },
+    "pipelines": {
+      "main": {
+        "title": "Pipeline Editor"
+      },
+      "io": {
+        "title": "Custom I/O"
+      }
     }
   },
   "components": {

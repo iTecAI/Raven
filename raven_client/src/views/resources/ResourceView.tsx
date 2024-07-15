@@ -23,6 +23,7 @@ import {
     IconDotsVertical,
     IconPuzzle,
     IconSearch,
+    IconX,
 } from "@tabler/icons-react";
 import { ResourcePropertyIcon } from "../../components/resource/PropertyIcon";
 import { ResourcePropertyRenderer } from "../../components/resource/renderers";
@@ -223,7 +224,7 @@ export function ResourceView() {
     }, [resources]);
 
     const [filters, setFilters] = useState<
-        (`tag:${string}` | `category:${string}`)[]
+        (`tag:${string}` | `category:${string}` | `plugin:${string}`)[]
     >([]);
 
     const mobile = useIsMobile();
@@ -237,6 +238,18 @@ export function ResourceView() {
                     value={search}
                     onChange={setSearch}
                     style={{ flexGrow: 3 }}
+                    rightSection={
+                        search.length > 0 ? (
+                            <ActionIcon
+                                size="sm"
+                                variant="transparent"
+                                color="dark"
+                                onClick={() => setSearch("")}
+                            >
+                                <IconX size={20} />
+                            </ActionIcon>
+                        ) : undefined
+                    }
                 />
                 {!mobile && (
                     <MultiSelect
@@ -245,6 +258,13 @@ export function ResourceView() {
                         onChange={(v) => setFilters(v as any)}
                         style={{ flexGrow: 1, minWidth: "192px" }}
                         data={[
+                            {
+                                group: t("views.resource.search.group.plugin"),
+                                items: Object.keys(plugins).map((v) => ({
+                                    label: plugins[v].name,
+                                    value: `plugin:${v}`,
+                                })),
+                            },
                             {
                                 group: t(
                                     "views.resource.search.group.category",
@@ -307,9 +327,14 @@ export function ResourceView() {
                                                                   2,
                                                               )[1],
                                                           )
-                                                        : v.metadata
-                                                              .category ===
-                                                          f.split(":")[1],
+                                                        : f.startsWith(
+                                                                "category:",
+                                                            )
+                                                          ? v.metadata
+                                                                .category ===
+                                                            f.split(":", 2)[1]
+                                                          : v.plugin ===
+                                                            f.split(":", 2)[1],
                                                 )
                                                 .includes(true)),
                                 )

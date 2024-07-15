@@ -56,7 +56,8 @@
       "search": {
         "group": {
           "category": "Categories",
-          "tag": "Tags"
+          "tag": "Tags",
+          "plugin": "Plugins"
         }
       }
     }

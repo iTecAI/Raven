@@ -3,5 +3,6 @@
     "python.analysis.extraPaths": [
         "raven_api"
     ],
-    "python.REPL.enableREPLSmartSend": false
+    "python.REPL.enableREPLSmartSend": false,
+    "i18n-ally.localesPaths": "raven_client/src/lang"
 }

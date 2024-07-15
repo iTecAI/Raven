@@ -51,6 +51,14 @@
       "item": {
         "no_category": "Uncategorized"
       }
+    },
+    "resource": {
+      "search": {
+        "group": {
+          "category": "Categories",
+          "tag": "Tags"
+        }
+      }
     }
   },
   "components": {

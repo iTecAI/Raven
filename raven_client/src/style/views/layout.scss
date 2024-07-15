@@ -9,3 +9,7 @@
         }
     }
 }
+.app-main {
+    max-height: calc(100vh - 60px);
+    position: relative;
+}

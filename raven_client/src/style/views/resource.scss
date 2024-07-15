@@ -1,0 +1,18 @@
+.resource-view {
+    height: calc(100vh - 60px - 32px);
+
+    .resource-list {
+        flex-grow: 1;
+        overflow: hidden;
+        position: relative;
+
+        .resource-scroll {
+            overflow-y: auto;
+            max-height: 100%;
+
+            .mantine-ScrollArea-viewport {
+                max-height: 100%;
+            }
+        }
+    }
+}

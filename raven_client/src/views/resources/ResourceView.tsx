@@ -1,19 +1,34 @@
-import { useDisclosure, useListState } from "@mantine/hooks";
+import { useDisclosure, useInputState } from "@mantine/hooks";
 import { PluginMixin, ResourceMixin, useApi, useScoped } from "../../util/api";
-import { Resource } from "../../types/backend/resource";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ActionIcon, Badge, Group, Paper, Stack, Text } from "@mantine/core";
+import {
+    ActionIcon,
+    Badge,
+    Group,
+    MultiSelect,
+    Paper,
+    ScrollArea,
+    Stack,
+    Text,
+    TextInput,
+} from "@mantine/core";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 import { PluginManifest } from "../../types/backend/plugin";
 import { DynamicIcon } from "../../components/DynamicIcon";
-import { startCase } from "lodash";
-import { IconDotsVertical, IconPuzzle } from "@tabler/icons-react";
+import { capitalize, startCase } from "lodash";
+import {
+    IconCategoryFilled,
+    IconDotsVertical,
+    IconPuzzle,
+    IconSearch,
+} from "@tabler/icons-react";
 import { ResourcePropertyIcon } from "../../components/resource/PropertyIcon";
 import { ResourcePropertyRenderer } from "../../components/resource/renderers";
 import { ResourceModal } from "../../components/resource/ResourceModal";
 import { useResource, useResources } from "../../util/resources";
+import { useIsMobile } from "../../util/hooks";
 
 const ResourceItem = memo(
     ({
@@ -163,6 +178,8 @@ export function ResourceView() {
         {},
     );
 
+    const [search, setSearch] = useInputState("");
+
     const loadPlugins = useCallback(() => {
         if (api.auth?.user?.id && canView) {
             api.methods.list_plugins().then(setPlugins);
@@ -205,28 +222,108 @@ export function ResourceView() {
         return result;
     }, [resources]);
 
+    const [filters, setFilters] = useState<
+        (`tag:${string}` | `category:${string}`)[]
+    >([]);
+
+    const mobile = useIsMobile();
+    const actualFilterValue = mobile ? [] : filters;
+
     return (
-        <ResponsiveMasonry
-            className="resource-list"
-            columnsCountBreakPoints={{
-                576: 1,
-                768: 1,
-                992: 2,
-                1200: 3,
-                1408: 4,
-            }}
-        >
-            <Masonry gutter="12px">
-                {resources
-                    .filter((v) => plugins[v.plugin] !== undefined)
-                    .map((resource) => (
-                        <ResourceItem
-                            resource_id={resource.id}
-                            plugin={plugins[resource.plugin]}
-                            key={`${resource.plugin}:${resource.id}`}
-                        />
-                    ))}
-            </Masonry>
-        </ResponsiveMasonry>
+        <Stack gap="md" className="resource-view">
+            <Group gap="sm" wrap="nowrap" className="resource-menu">
+                <TextInput
+                    leftSection={<IconSearch size={20} />}
+                    value={search}
+                    onChange={setSearch}
+                    style={{ flexGrow: 3 }}
+                />
+                {!mobile && (
+                    <MultiSelect
+                        leftSection={<IconCategoryFilled size={20} />}
+                        value={filters}
+                        onChange={(v) => setFilters(v as any)}
+                        style={{ flexGrow: 1, minWidth: "192px" }}
+                        data={[
+                            {
+                                group: t(
+                                    "views.resource.search.group.category",
+                                ),
+                                items: categories.map((v) => ({
+                                    label: capitalize(v),
+                                    value: `category:${v}`,
+                                })),
+                            },
+                            {
+                                group: t("views.resource.search.group.tag"),
+                                items: tags.map((v) => ({
+                                    label: capitalize(v),
+                                    value: `tag:${v}`,
+                                })),
+                            },
+                        ]}
+                    />
+                )}
+            </Group>
+            <Paper withBorder p="sm" className="resource-list">
+                <ScrollArea className="resource-scroll">
+                    <ResponsiveMasonry
+                        className="resource-list"
+                        columnsCountBreakPoints={{
+                            576: 1,
+                            768: 1,
+                            992: 2,
+                            1200: 3,
+                            1408: 4,
+                        }}
+                    >
+                        <Masonry gutter="12px">
+                            {resources
+                                .filter((v) => plugins[v.plugin] !== undefined)
+                                .filter(
+                                    (v) =>
+                                        (search.length === 0 ||
+                                            search
+                                                .toLowerCase()
+                                                .includes(
+                                                    (
+                                                        v.metadata
+                                                            .display_name ??
+                                                        v.id
+                                                    ).toLowerCase(),
+                                                ) ||
+                                            (v.metadata.display_name ?? v.id)
+                                                .toLowerCase()
+                                                .includes(
+                                                    search.toLowerCase(),
+                                                )) &&
+                                        (actualFilterValue.length === 0 ||
+                                            actualFilterValue
+                                                .map((f) =>
+                                                    f.startsWith("tag:")
+                                                        ? v.metadata.tags.includes(
+                                                              f.split(
+                                                                  ":",
+                                                                  2,
+                                                              )[1],
+                                                          )
+                                                        : v.metadata
+                                                              .category ===
+                                                          f.split(":")[1],
+                                                )
+                                                .includes(true)),
+                                )
+                                .map((resource) => (
+                                    <ResourceItem
+                                        resource_id={resource.id}
+                                        plugin={plugins[resource.plugin]}
+                                        key={`${resource.plugin}:${resource.id}`}
+                                    />
+                                ))}
+                        </Masonry>
+                    </ResponsiveMasonry>
+                </ScrollArea>
+            </Paper>
+        </Stack>
     );
 }

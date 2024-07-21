@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "type": "firefox",
+            "request": "attach",
+            "name": "Attach",
+            "url": "https://localhost:5173/",
+            "webRoot": "${workspaceFolder}",
+            "host": "127.0.0.1"
+        }
+    ]
+}

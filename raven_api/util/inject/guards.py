@@ -10,7 +10,7 @@ async def guard_logged_in(connection: ASGIConnection, _: BaseRouteHandler) -> No
         raise NotAuthorizedException("This endpoint requires login.")
 
 
-def guard_scoped(*scopes: list[str], all: bool = False):
+def guard_scoped(*scopes: str, all: bool = False):
     async def guard_scoped_inner(
         connection: ASGIConnection, _: BaseRouteHandler
     ) -> None:

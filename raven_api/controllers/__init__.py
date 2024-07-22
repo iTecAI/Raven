@@ -4,6 +4,7 @@ from .auth import AuthController, AuthScopesController
 from .plugins import PluginsController
 from .resources import ResourceController
 from .events import EventController
+from .pipelines import PipelineIOController
 
 CONTROLLERS = [
     AuthController,
@@ -11,6 +12,7 @@ CONTROLLERS = [
     PluginsController,
     ResourceController,
     EventController,
+    PipelineIOController,
 ]
 
 @get("/")

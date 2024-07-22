@@ -30,8 +30,9 @@ import {
     ScopeMixin,
     ResourceMixin,
     PluginMixin,
+    PipelineIOMixin
 } from "./methods";
-export { AuthMixin, ScopeMixin, ResourceMixin, PluginMixin };
+export { AuthMixin, ScopeMixin, ResourceMixin, PluginMixin, PipelineIOMixin };
 import { UnionToIntersection, ValuesType } from "utility-types";
 import { useCustomCompareMemo } from "use-custom-compare";
 import { difference, eq, uniqueId } from "lodash";

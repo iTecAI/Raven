@@ -1,0 +1,29 @@
+.icon-selector {
+    cursor: pointer !important;
+
+    * {
+        cursor: pointer !important;
+    }
+}
+
+.icon-selector-modal {
+    .selector-stack {
+        .selector-results {
+            max-height: 50vh;
+            overflow-y: hidden;
+
+            .selector-scroll {
+                height: calc(50vh - 26px);
+
+                .icon-item {
+                    cursor: pointer;
+
+                    &:hover,
+                    &.active {
+                        background-color: var(--mantine-color-default-border) !important;
+                    }
+                }
+            }
+        }
+    }
+}

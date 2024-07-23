@@ -73,7 +73,10 @@
           "trigger": "Action Trigger"
         },
         "create_modal": {
-          "title": "New I/O Item: {{name}}"
+          "title": "New I/O Item: {{name}}",
+          "label_name": "Name",
+          "label_icon": "Icon",
+          "desc_label": "Description"
         }
       }
     }
@@ -104,6 +107,10 @@
         "reset": "Clear",
         "exec": "Execute"
       }
+    },
+    "icon_select": {
+      "title": "Select Icon",
+      "placeholder": "No Selection"
     }
   }
 }

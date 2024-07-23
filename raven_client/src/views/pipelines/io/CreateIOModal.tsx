@@ -1,9 +1,10 @@
-import { Group, Modal, Text } from "@mantine/core";
+import { Group, Modal, Stack, Text, Textarea, TextInput } from "@mantine/core";
 import { PipelineIO } from "../../../types/backend/pipeline";
-import { IconPlus } from "@tabler/icons-react";
+import { IconArticle, IconPencil, IconPlus } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 import { useForm } from "@mantine/form";
+import { IconSelector } from "../../../components/IconSelector";
 
 export function CreateIOModal({
     mode,
@@ -38,6 +39,25 @@ export function CreateIOModal({
                     </Text>
                 </Group>
             }
-        ></Modal>
+        >
+            <Stack gap="sm">
+                <Group gap="sm" wrap="nowrap">
+                    <IconSelector
+                        {...formBase.getInputProps("icon")}
+                        label={t("views.pipelines.io.create_modal.label_icon")}
+                    />
+                    <TextInput
+                        label={t("views.pipelines.io.create_modal.label_name")}
+                        leftSection={<IconPencil size={20} />}
+                        style={{ flexGrow: 1 }}
+                    />
+                </Group>
+                <Textarea
+                    {...formBase.getInputProps("description")}
+                    leftSection={<IconArticle size={20} />}
+                    label={t("views.pipelines.io.create_modal.desc_label")}
+                />
+            </Stack>
+        </Modal>
     );
 }

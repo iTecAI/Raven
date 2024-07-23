@@ -30,3 +30,36 @@
         }
     }
 }
+.io-create-modal {
+    .io-form-stack {
+        .io-extra {
+            &.data {
+                .field-list {
+                    max-height: 50vh;
+                    overflow-y: hidden;
+
+                    .field-stack {
+                        max-height: calc(50vh - 46px);
+                        overflow-y: hidden;
+
+                        .field-items-scroll {
+                            max-height: calc(100%);
+                            overflow-y: auto;
+
+                            .data-entry-field-item {
+                                position: relative;
+
+                                .remove-item {
+                                    position: absolute;
+                                    top: 12px;
+                                    right: 12px;
+                                    opacity: 0.75;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

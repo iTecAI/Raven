@@ -6,6 +6,10 @@
       "info": "Notice:",
       "warning": "Warning:",
       "error": "Error:"
+    },
+    "action": {
+      "cancel": "Cancel",
+      "create": "Create"
     }
   },
   "errors": {
@@ -76,7 +80,27 @@
           "title": "New I/O Item: {{name}}",
           "label_name": "Name",
           "label_icon": "Icon",
-          "desc_label": "Description"
+          "desc_label": "Description",
+          "extra": {
+            "trigger": {
+              "label_label": "Button Label"
+            },
+            "data": {
+              "title": "Fields",
+              "add_field": {
+                "title": "Add Field",
+                "item": {
+                  "string": "Text Field",
+                  "number": "Number Field",
+                  "switch": "Switch Field",
+                  "select": "Selection Field",
+                  "list": "List Field",
+                  "color": "Color Field",
+                  "datetime": "Date/Time Field"
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -111,6 +135,23 @@
     "icon_select": {
       "title": "Select Icon",
       "placeholder": "No Selection"
+    }
+  },
+  "util": {
+    "pipelines": {
+      "io": {
+        "field": {
+          "string": {
+            "title": "Text Field",
+            "multiline": "Multiline",
+            "max_length": "Max Length"
+          }
+        },
+        "meta": {
+          "key": "Unique Key",
+          "label": "Field Label"
+        }
+      }
     }
   }
 }

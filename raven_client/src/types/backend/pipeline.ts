@@ -58,6 +58,7 @@ interface BasePipelineIO {
 
 export interface PipelineTriggerIO extends BasePipelineIO {
     type: "trigger";
+    label: string | null;
 }
 
 export interface PipelineDataIO extends BasePipelineIO {

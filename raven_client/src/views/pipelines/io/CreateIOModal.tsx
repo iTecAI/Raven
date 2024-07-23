@@ -40,7 +40,6 @@ import { useForm } from "@mantine/form";
 import { IconSelector } from "../../../components/IconSelector";
 import { useSetState } from "@mantine/hooks";
 import { FieldRenderers } from "./fields";
-import { uniqueId } from "lodash";
 
 type ExtrasProps<T = any> = {
     value: Partial<T>;
@@ -62,7 +61,7 @@ function AddDataFieldMenu({
                     fields: [
                         ...(current.fields ?? []),
                         {
-                            key: `field-${uniqueId()}`,
+                            key: `field-${window.crypto.randomUUID().slice(0, 6)}`,
                             label: "New Field",
                             default_value: null,
                             ...item,

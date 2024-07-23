@@ -149,7 +149,8 @@
         },
         "meta": {
           "key": "Unique Key",
-          "label": "Field Label"
+          "label": "Field Label",
+          "default": "Default Value"
         }
       }
     }

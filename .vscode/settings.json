@@ -1,8 +1,9 @@
 {
     "git.ignoreSubmodules": true,
-    "python.analysis.extraPaths": [
-        "raven_api"
-    ],
+    "python.analysis.extraPaths": ["raven_api"],
     "python.REPL.enableREPLSmartSend": false,
-    "i18n-ally.localesPaths": "raven_client/src/lang"
+    "i18n-ally.localesPaths": "raven_client/src/lang",
+    "i18n-ally.enabledFrameworks": ["react-i18next", "react"],
+    "i18n-ally.keystyle": "nested",
+    "i18n-ally.enabledParsers": ["json"]
 }

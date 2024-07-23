@@ -1,0 +1,32 @@
+.pipeline-tabs {
+    height: calc(100vh - 60px);
+
+    .pipeline-tabs-list {
+        white-space: nowrap;
+        flex-wrap: nowrap;
+    }
+
+    .pipeline-tab {
+        flex-grow: 1;
+        max-height: calc(100vh - 60px);
+        overflow-y: hidden;
+
+        &.io {
+            .io-stack {
+                height: calc(100vh - 152px);
+                flex-grow: 1;
+
+                .io-list {
+                    overflow-y: hidden;
+                    flex-grow: 1;
+                    height: 100%;
+
+                    .io-scroll {
+                        overflow-y: hidden;
+                        height: 100%;
+                    }
+                }
+            }
+        }
+    }
+}

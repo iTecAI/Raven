@@ -83,4 +83,11 @@ class PipelineIOUpdateEvent(BaseEvent):
     path: Literal["pipeline.io.edit"] = "pipeline.io.edit"
 
 
-EVENT_TYPES = ResourceUpdateEvent
+@EVENTS.register("pipeline.io.activate")
+class PipelineIOActivateEvent(BaseEvent):
+    path: Literal["pipeline.io.activate"] = "pipeline.io.activate"
+    io_type: str
+    io_id: str
+
+
+EVENT_TYPES = ResourceUpdateEvent | PipelineIOActivateEvent | PipelineIOUpdateEvent

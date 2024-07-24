@@ -98,5 +98,18 @@ export function PipelineIOMixin<TBase extends MixinConstructor>(base: TBase) {
                 null,
             );
         }
+
+        public async activate_io(
+            id: string,
+            data: any,
+        ): Promise<PipelineIO | null> {
+            return data(
+                await this.request<PipelineIO>(`/pipelines/io/${id}/activate`, {
+                    method: "post",
+                    body: data,
+                }),
+                null,
+            );
+        }
     };
 }

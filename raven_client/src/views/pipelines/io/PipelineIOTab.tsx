@@ -52,6 +52,7 @@ function TriggerEntryState({
     };
 }) {
     const { t } = useTranslation();
+    const { methods } = useApi(PipelineIOMixin);
     return (
         <Group gap="sm" justify="space-between">
             <Text>{t("views.pipelines.io.items.trigger.activate")}</Text>
@@ -60,6 +61,7 @@ function TriggerEntryState({
                     <DynamicIcon icon={entry.icon ?? "player-play-filled"} />
                 }
                 disabled={!scopes["pipelines.io.activate"]}
+                onClick={() => methods.activate_io(entry.id, {})}
             >
                 {entry.label ?? entry.name}
             </Button>
@@ -78,6 +80,7 @@ function DataEntryState({
         "pipelines.io.activate": boolean | null;
     };
 }) {
+    const { methods } = useApi(PipelineIOMixin);
     const { t } = useTranslation();
     const [fieldValues, setFieldValues] = useSetState<{ [key: string]: any }>(
         entry.fields.reduce(
@@ -123,35 +126,40 @@ function DataEntryState({
                     }
                 })}
             </SimpleGrid>
-            <Group gap="sm" justify="end">
-                <Button
-                    justify="space-between"
-                    leftSection={<IconX size={20} />}
-                    variant="light"
-                    color="gray"
-                    disabled={isEqual(savedValues, fieldValues)}
-                    onClick={() =>
-                        setFieldValues(
-                            entry.fields.reduce(
-                                (prev, cur) => ({
-                                    ...prev,
-                                    [cur.key]: cur.value,
-                                }),
-                                {},
-                            ),
-                        )
-                    }
-                >
-                    {t("common.action.cancel")}
-                </Button>
-                <Button
-                    justify="space-between"
-                    leftSection={<IconDeviceFloppy size={20} />}
-                    disabled={isEqual(savedValues, fieldValues)}
-                >
-                    {t("common.action.save")}
-                </Button>
-            </Group>
+            {scopes["pipelines.io.activate"] && (
+                <Group gap="sm" justify="end">
+                    <Button
+                        justify="space-between"
+                        leftSection={<IconX size={20} />}
+                        variant="light"
+                        color="gray"
+                        disabled={isEqual(savedValues, fieldValues)}
+                        onClick={() =>
+                            setFieldValues(
+                                entry.fields.reduce(
+                                    (prev, cur) => ({
+                                        ...prev,
+                                        [cur.key]: cur.value,
+                                    }),
+                                    {},
+                                ),
+                            )
+                        }
+                    >
+                        {t("common.action.cancel")}
+                    </Button>
+                    <Button
+                        justify="space-between"
+                        leftSection={<IconDeviceFloppy size={20} />}
+                        disabled={isEqual(savedValues, fieldValues)}
+                        onClick={() =>
+                            methods.activate_io(entry.id, fieldValues)
+                        }
+                    >
+                        {t("common.action.save")}
+                    </Button>
+                </Group>
+            )}
         </Stack>
     );
 }
@@ -297,6 +305,7 @@ export function PipelineIOTab() {
 
     useEffect(getEntries, [getEntries]);
     useEvent("pipeline.io.edit", getEntries);
+    useEvent("pipeline.io.activate", getEntries);
 
     return (
         <Stack gap="sm" className="io-stack">

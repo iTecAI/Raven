@@ -139,7 +139,9 @@ class PipelineIOController(Controller):
         guards=[guard_scoped("pipelines.io.manage")],
         dependencies={"emitter": Provide(provide_event_emitter())},
     )
-    async def duplicate_io_item(self, io_id: str, emitter: EmitterType) -> None:
+    async def duplicate_io_item(
+        self, io_id: str, emitter: EmitterType
+    ) -> PipelineIOTypes:
         io_obj = await PipelineIO.get(io_id, with_children=True)
         if io_obj == None:
             raise NotFoundException("Unknown IO ID")
@@ -147,3 +149,34 @@ class PipelineIOController(Controller):
         io_obj.name += " Copy"
         await io_obj.save()
         emitter("pipeline.io.edit", {}, scopes=["pipelines.io.*"])
+        return io_obj
+
+    @post(
+        "/{io_id:str}/activate",
+        guards=[guard_scoped("pipelines.io.activate")],
+        dependencies={"emitter": Provide(provide_event_emitter())},
+    )
+    async def activate_io_item(
+        self, io_id: str, emitter: EmitterType, data: Any
+    ) -> PipelineIOTypes:
+        io_obj: PipelineIOTypes | None = await PipelineIO.get(io_id, with_children=True)
+        if io_obj == None:
+            raise NotFoundException("Unknown IO ID")
+
+        match io_obj.type:
+            case "data":
+                if not isinstance(data, dict):
+                    raise ValidationException("Invalid activation body")
+                for field in io_obj.fields:
+                    if field.key in data.keys():
+                        field.value = data[field.key]
+                await io_obj.save()
+            case "trigger":
+                pass
+
+        emitter(
+            "pipeline.io.activate",
+            {"io_type": io_obj.type, "io_id": io_id},
+            scopes=["pipelines.io"],
+        )
+        return io_obj

@@ -1,3 +1,5 @@
+import { ColorFieldRenderer } from "./colorField";
+import { DatetimeFieldRenderer } from "./datetimeField";
 import { ListFieldRenderer } from "./listField";
 import { NumberFieldRenderer } from "./numberField";
 import { SelectFieldRenderer } from "./selectField";
@@ -16,4 +18,6 @@ export const FieldRenderers: { [key: string]: IOFieldRenderer<any> } = {
     switch: SwitchFieldRenderer,
     select: SelectFieldRenderer,
     list: ListFieldRenderer,
+    color: ColorFieldRenderer,
+    datetime: DatetimeFieldRenderer,
 };

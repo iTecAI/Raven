@@ -173,6 +173,18 @@
             "title": "List Field",
             "suggestions": "Suggestions",
             "max_length": "Max Items"
+          },
+          "color": {
+            "title": "Color Field",
+            "alpha": "Allow Transparency"
+          },
+          "datetime": {
+            "title": "Date/Time Field",
+            "mode": {
+              "datetime": "Date & Time",
+              "date": "Date",
+              "time": "Time"
+            }
           }
         },
         "meta": {

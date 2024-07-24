@@ -213,3 +213,5 @@ class PipelineDataIO(PipelineIO):
 class PipelineTriggerIO(PipelineIO):
     type: Literal["trigger"] = "trigger"
     label: str | None = None
+
+PipelineIOTypes = PipelineDataIO | PipelineTriggerIO

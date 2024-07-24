@@ -1,5 +1,5 @@
 from typing import Any, Literal
-from litestar import Controller, get, post
+from litestar import Controller, delete, get, post
 from litestar.di import Provide
 from litestar.exceptions import *
 from pydantic import BaseModel
@@ -10,7 +10,12 @@ from ..util import (
     provide_event_emitter,
     EmitterType,
 )
-from ..common.models import PipelineIO, PipelineDataIO, PipelineTriggerIO
+from ..common.models import (
+    PipelineIO,
+    PipelineDataIO,
+    PipelineTriggerIO,
+    PipelineIOTypes,
+)
 
 
 class DataIOModel(BaseModel):
@@ -26,6 +31,7 @@ class TriggerIOModel(BaseModel):
     name: str
     icon: str | None = None
     description: str | None = None
+    label: str | None = None
 
 
 class PipelineIOController(Controller):
@@ -46,7 +52,7 @@ class PipelineIOController(Controller):
         return await PipelineDataIO.all().to_list()
 
     @get("/{io_id:str}")
-    async def get_io_by_id(self, io_id: str) -> PipelineIO:
+    async def get_io_by_id(self, io_id: str) -> PipelineIOTypes:
         result = await PipelineIO.get(io_id, with_children=True)
         if not result:
             raise NotFoundException("Unknown IO ID")
@@ -83,3 +89,46 @@ class PipelineIOController(Controller):
             return created
         except:
             raise ValidationException("Failed to parse into IO model")
+
+    @post(
+        "/{io_id:str}/edit",
+        guards=[guard_scoped("pipelines.io.manage")],
+        dependencies={"emitter": Provide(provide_event_emitter())},
+    )
+    async def edit_io_item(
+        self, data: dict, io_id: str, emitter: EmitterType
+    ) -> PipelineIOTypes:
+        to_edit: PipelineIOTypes | None = await PipelineIO.get(
+            io_id, with_children=True
+        )
+        if not to_edit:
+            raise NotFoundException("Unknown IO ID")
+
+        model: PipelineIOTypes
+        match data["type"]:
+            case "data":
+                model = PipelineDataIO(**data)
+            case "trigger":
+                model = PipelineTriggerIO(**data)
+            case _:
+                raise ClientException(f"Invalid IO type: {data['type']}")
+
+        if model.type != to_edit.type:
+            raise ClientException("IO type mismatch")
+
+        model.id = to_edit.id
+        await model.save()
+        emitter("pipeline.io.edit", {}, scopes=["pipelines.io.*"])
+        return model
+
+    @delete(
+        "/{io_id:str}",
+        guards=[guard_scoped("pipelines.io.manage")],
+        dependencies={"emitter": Provide(provide_event_emitter())},
+    )
+    async def delete_io_item(self, io_id: str, emitter: EmitterType) -> None:
+        io_obj = await PipelineIO.get(io_id, with_children=True)
+        if io_obj == None:
+            raise NotFoundException("Unknown IO ID")
+        await io_obj.delete()
+        emitter("pipeline.io.edit", {}, scopes=["pipelines.io.*"])

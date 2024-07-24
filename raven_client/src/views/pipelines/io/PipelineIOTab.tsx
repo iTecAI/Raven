@@ -14,7 +14,10 @@ import {
     IconChevronDown,
     IconClick,
     IconCopy,
+    IconDotsVertical,
     IconForms,
+    IconInfoCircle,
+    IconPencil,
     IconPlayerPlayFilled,
     IconTrashFilled,
 } from "@tabler/icons-react";
@@ -25,10 +28,12 @@ import { PipelineIO } from "../../../types/backend/pipeline";
 import { PipelineIOMixin, useApi, useScopeMatch } from "../../../util/api";
 import { DynamicIcon } from "../../../components/DynamicIcon";
 import { useEvent } from "../../../util/events";
+import { EditIOModal } from "./EditIOModal";
 
 function IOEntryItem({
     entry,
     scopes,
+    onEdit,
 }: {
     entry: PipelineIO;
     scopes: {
@@ -36,42 +41,79 @@ function IOEntryItem({
         "pipelines.io.manage": boolean | null;
         "pipelines.io.activate": boolean | null;
     };
+    onEdit: () => void;
 }) {
     const { t } = useTranslation();
+    const { methods } = useApi(PipelineIOMixin);
     return (
         <Paper className="io-entry-item paper-light" p="sm">
-            {(scopes["pipelines.io.manage"] ||
-                scopes["pipelines.io.activate"]) && (
-                <Group className="entry-actions" gap="xs" wrap="nowrap">
+            <Menu position="bottom-end" withArrow>
+                <Menu.Target>
+                    <ActionIcon
+                        size="sm"
+                        variant="transparent"
+                        color="gray"
+                        className="entry-actions"
+                    >
+                        <IconDotsVertical />
+                    </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                    <Menu.Item pl="xs">
+                        <Group gap="sm">
+                            <IconInfoCircle size={18} />
+                            <Text size="sm">
+                                {t("views.pipelines.io.items.menu.info")}
+                            </Text>
+                        </Group>
+                    </Menu.Item>
                     {scopes["pipelines.io.activate"] && (
-                        <ActionIcon
-                            size="sm"
-                            variant="transparent"
-                            color="gray"
-                        >
-                            <IconPlayerPlayFilled />
-                        </ActionIcon>
+                        <Menu.Item pl="xs">
+                            <Group gap="sm">
+                                <IconPlayerPlayFilled size={18} />
+                                <Text size="sm">
+                                    {t(
+                                        "views.pipelines.io.items.menu.activate",
+                                    )}
+                                </Text>
+                            </Group>
+                        </Menu.Item>
                     )}
                     {scopes["pipelines.io.manage"] && (
-                        <ActionIcon
-                            size="sm"
-                            variant="transparent"
-                            color="gray"
-                        >
-                            <IconCopy />
-                        </ActionIcon>
+                        <Menu.Item pl="xs" onClick={onEdit}>
+                            <Group gap="sm">
+                                <IconPencil size={18} />
+                                <Text size="sm">
+                                    {t("views.pipelines.io.items.menu.edit")}
+                                </Text>
+                            </Group>
+                        </Menu.Item>
                     )}
                     {scopes["pipelines.io.manage"] && (
-                        <ActionIcon
-                            size="sm"
-                            variant="transparent"
-                            color="gray"
-                        >
-                            <IconTrashFilled />
-                        </ActionIcon>
+                        <Menu.Item pl="xs">
+                            <Group gap="sm">
+                                <IconCopy size={18} />
+                                <Text size="sm">
+                                    {t("views.pipelines.io.items.menu.copy")}
+                                </Text>
+                            </Group>
+                        </Menu.Item>
                     )}
-                </Group>
-            )}
+                    {scopes["pipelines.io.manage"] && (
+                        <Menu.Item
+                            pl="xs"
+                            onClick={() => methods.delete_io(entry.id)}
+                        >
+                            <Group gap="sm">
+                                <IconTrashFilled size={18} />
+                                <Text size="sm">
+                                    {t("views.pipelines.io.items.menu.delete")}
+                                </Text>
+                            </Group>
+                        </Menu.Item>
+                    )}
+                </Menu.Dropdown>
+            </Menu>
             <Stack gap="sm">
                 <Group gap="sm" className="entry-title" wrap="nowrap">
                     <DynamicIcon
@@ -106,6 +148,7 @@ export function PipelineIOTab() {
     const [creationMode, setCreationMode] = useState<PipelineIO["type"] | null>(
         null,
     );
+    const [editing, setEditing] = useState<PipelineIO | null>(null);
 
     const [entries, setEntries] = useState<PipelineIO[]>([]);
     const api = useApi(PipelineIOMixin);
@@ -135,6 +178,7 @@ export function PipelineIOTab() {
                                 entry={v}
                                 key={v.id}
                                 scopes={scopes as any}
+                                onEdit={() => setEditing(v)}
                             />
                         ))}
                     </Stack>
@@ -167,6 +211,7 @@ export function PipelineIOTab() {
                 mode={creationMode}
                 onClose={() => setCreationMode(null)}
             />
+            <EditIOModal editing={editing} onClose={() => setEditing(null)} />
         </Stack>
     );
 }

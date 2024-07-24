@@ -7,6 +7,7 @@ from .pipelines import (
     PipelineIO,
     PipelineTriggerIO,
     FieldTypes,
+    PipelineIOTypes,
 )
 
 DOCUMENT_MODELS = [

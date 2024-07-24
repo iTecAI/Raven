@@ -321,7 +321,7 @@ function TriggerExtras({
     );
 }
 
-const EXTRAS: Partial<{
+export const EXTRAS: Partial<{
     [key in PipelineIO["type"]]: (props: ExtrasProps<any>) => ReactNode;
 }> = {
     data: DataEntryExtras,

@@ -9,7 +9,8 @@
     },
     "action": {
       "cancel": "Cancel",
-      "create": "Create"
+      "create": "Create",
+      "submit": "Submit"
     }
   },
   "errors": {
@@ -104,10 +105,22 @@
         },
         "feedback": {
           "successful_creation": "Successfully created new I/O object",
-          "error_creation": "Object creation failed."
+          "error_creation": "Object creation failed.",
+          "successful_edit": "Updated I/O object",
+          "error_edit": "Object edit failed"
         },
         "items": {
-          "no_description": "No Description"
+          "no_description": "No Description",
+          "menu": {
+            "info": "Info",
+            "activate": "Activate",
+            "edit": "Edit",
+            "copy": "Duplicate",
+            "delete": "Delete"
+          }
+        },
+        "edit_modal": {
+          "title": "Edit I/O Item: {{name}}"
         }
       }
     }

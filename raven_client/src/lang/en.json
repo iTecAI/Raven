@@ -101,6 +101,13 @@
               }
             }
           }
+        },
+        "feedback": {
+          "successful_creation": "Successfully created new I/O object",
+          "error_creation": "Object creation failed."
+        },
+        "items": {
+          "no_description": "No Description"
         }
       }
     }

@@ -135,18 +135,18 @@ class ColorField(PipelineField[str]):
     def hls(self) -> tuple[int, int, int, float] | tuple[int, int, int]:
         rgb = self.rgb
         if len(rgb) == 4:
-            return (*[int(i) for i in colorsys.rgb_to_hls(*rgb[:3])], rgb[3])
+            return tuple(*[int(i) for i in colorsys.rgb_to_hls(*rgb[:3])], rgb[3])
         else:
-            return (int(i) for i in colorsys.rgb_to_hls(*rgb))
+            return tuple(int(i) for i in colorsys.rgb_to_hls(*rgb))
 
     @computed_field
     @property
     def hsv(self) -> tuple[int, int, int, float] | tuple[int, int, int]:
         rgb = self.rgb
         if len(rgb) == 4:
-            return (*[int(i) for i in colorsys.rgb_to_hsv(*rgb[:3])], rgb[3])
+            return tuple(*[int(i) for i in colorsys.rgb_to_hsv(*rgb[:3])], rgb[3])
         else:
-            return (int(i) for i in colorsys.rgb_to_hsv(*rgb))
+            return tuple(int(i) for i in colorsys.rgb_to_hsv(*rgb))
 
 
 class DateTimeField(PipelineField[date | datetime | time]):

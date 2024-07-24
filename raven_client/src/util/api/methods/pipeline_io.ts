@@ -15,6 +15,7 @@ export interface DataIOModel extends IOBase {
 
 export interface TriggerIOModel extends IOBase {
     type: "trigger";
+    label: string | null;
 }
 
 export function PipelineIOMixin<TBase extends MixinConstructor>(base: TBase) {

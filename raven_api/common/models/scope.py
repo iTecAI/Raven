@@ -146,8 +146,21 @@ CORE_SCOPE: dict[str, MinimalScope] = {
     "pipelines": {
         "display_name": "Pipelines",
         "children": {
-            "view": {"display_name": "View"},
-            "manage": {"display_name": "Manage"},
+            "flows": {
+                "display_name": "Flows",
+                "children": {
+                    "view": {"display_name": "View"},
+                    "manage": {"display_name": "Manage"},
+                },
+            },
+            "io": {
+                "display_name": "Custom I/O",
+                "children": {
+                    "view": {"display_name": "View"},
+                    "manage": {"display_name": "Manage"},
+                    "activate": {"display_name": "Activate"},
+                },
+            },
         },
     },
 }

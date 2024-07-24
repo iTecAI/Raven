@@ -24,6 +24,20 @@
                     .io-scroll {
                         overflow-y: hidden;
                         height: 100%;
+                        .io-entry-item {
+                            position: relative;
+
+                            .entry-actions {
+                                position: absolute;
+                                top: 12px;
+                                right: 12px;
+                            }
+
+                            .entry-title {
+                                max-width: calc(100% - 96px);
+                                overflow: hidden;
+                            }
+                        }
                     }
                 }
             }

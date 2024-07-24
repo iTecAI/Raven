@@ -47,6 +47,8 @@ import { useForm } from "@mantine/form";
 import { IconSelector } from "../../../components/IconSelector";
 import { useDisclosure, useSetState } from "@mantine/hooks";
 import { FieldRenderers } from "./fields";
+import { PipelineIOMixin, useApi } from "../../../util/api";
+import { useNotifications } from "../../../util/notifications";
 
 type ExtrasProps<T = any> = {
     value: Partial<T>;
@@ -262,7 +264,6 @@ function DataEntryExtras({
     setValue,
 }: ExtrasProps<{ fields: Omit<IOFieldTypes, "value">[] }>) {
     const { t } = useTranslation();
-    console.log(value);
     return (
         <Fieldset
             legend={t("views.pipelines.io.create_modal.extra.data.title")}
@@ -343,6 +344,7 @@ export function CreateIOModal({
         },
     });
     const [extra, setExtra] = useSetState<{ [key: string]: any }>({});
+    const { success, error } = useNotifications();
 
     useEffect(() => {
         if (mode === null) {
@@ -356,6 +358,7 @@ export function CreateIOModal({
         }
     }, [mode]);
     const ExtraElement = (mode ? EXTRAS[mode] : null) ?? null;
+    const api = useApi(PipelineIOMixin);
 
     return (
         <Modal
@@ -363,56 +366,127 @@ export function CreateIOModal({
             onClose={onClose}
             size="xl"
             title={
-                <Group gap="sm">
-                    <IconPlus />
-                    <Text size="lg">
-                        {t("views.pipelines.io.create_modal.title", {
-                            name: t(`views.pipelines.io.create.${mode}`),
-                        })}
-                    </Text>
-                </Group>
+                mode && (
+                    <Group gap="sm">
+                        <IconPlus />
+                        <Text size="lg">
+                            {t("views.pipelines.io.create_modal.title", {
+                                name: t(`views.pipelines.io.create.${mode}`),
+                            })}
+                        </Text>
+                    </Group>
+                )
             }
             className="io-create-modal"
         >
-            <Stack gap="sm" className="io-form-stack">
-                <Group gap="sm" wrap="nowrap">
-                    <IconSelector
-                        {...formBase.getInputProps("icon")}
-                        label={t("views.pipelines.io.create_modal.label_icon")}
+            {mode && (
+                <Stack gap="sm" className="io-form-stack">
+                    <Group gap="sm" wrap="nowrap">
+                        <IconSelector
+                            {...formBase.getInputProps("icon")}
+                            label={t(
+                                "views.pipelines.io.create_modal.label_icon",
+                            )}
+                        />
+                        <TextInput
+                            label={t(
+                                "views.pipelines.io.create_modal.label_name",
+                            )}
+                            leftSection={<IconPencil size={20} />}
+                            style={{ flexGrow: 1 }}
+                            {...formBase.getInputProps("name")}
+                        />
+                    </Group>
+                    <Textarea
+                        {...formBase.getInputProps("description")}
+                        leftSection={<IconArticle size={20} />}
+                        label={t("views.pipelines.io.create_modal.desc_label")}
                     />
-                    <TextInput
-                        label={t("views.pipelines.io.create_modal.label_name")}
-                        leftSection={<IconPencil size={20} />}
-                        style={{ flexGrow: 1 }}
-                    />
-                </Group>
-                <Textarea
-                    {...formBase.getInputProps("description")}
-                    leftSection={<IconArticle size={20} />}
-                    label={t("views.pipelines.io.create_modal.desc_label")}
-                />
-                {ExtraElement && (
-                    <>
-                        <Divider />
-                        <div className={`io-extra ${mode ?? "null"}`}>
-                            <ExtraElement value={extra} setValue={setExtra} />
-                        </div>
-                    </>
-                )}
-                <Group justify="end" gap="sm">
-                    <Button
-                        variant="light"
-                        leftSection={<IconX size={20} />}
-                        color="gray"
-                        onClick={onClose}
-                    >
-                        {t("common.action.cancel")}
-                    </Button>
-                    <Button leftSection={<IconPlus size={20} />}>
-                        {t("common.action.create")}
-                    </Button>
-                </Group>
-            </Stack>
+                    {ExtraElement && (
+                        <>
+                            <Divider />
+                            <div className={`io-extra ${mode ?? "null"}`}>
+                                <ExtraElement
+                                    value={extra}
+                                    setValue={setExtra}
+                                />
+                            </div>
+                        </>
+                    )}
+                    <Group justify="end" gap="sm">
+                        <Button
+                            variant="light"
+                            leftSection={<IconX size={20} />}
+                            color="gray"
+                            onClick={onClose}
+                        >
+                            {t("common.action.cancel")}
+                        </Button>
+                        <Button
+                            leftSection={<IconPlus size={20} />}
+                            disabled={
+                                formBase.values.name.length === 0 ||
+                                (mode === "data" &&
+                                    (extra.fields ?? []).length === 0)
+                            }
+                            onClick={() => {
+                                switch (mode) {
+                                    case "data":
+                                        api.methods
+                                            .create_data_io({
+                                                type: "data",
+                                                ...formBase.values,
+                                                fields: extra.fields,
+                                            })
+                                            .then((result) => {
+                                                if (result) {
+                                                    success(
+                                                        t(
+                                                            "views.pipelines.io.feedback.successful_creation",
+                                                        ),
+                                                    );
+                                                    onClose();
+                                                } else {
+                                                    error(
+                                                        t(
+                                                            "views.pipelines.io.feedback.error_creation",
+                                                        ),
+                                                    );
+                                                }
+                                            });
+                                        break;
+                                    case "trigger":
+                                        api.methods
+                                            .create_trigger_io({
+                                                type: "trigger",
+                                                ...formBase.values,
+                                                label: extra.label,
+                                            })
+                                            .then((result) => {
+                                                if (result) {
+                                                    success(
+                                                        t(
+                                                            "views.pipelines.io.feedback.successful_creation",
+                                                        ),
+                                                    );
+                                                    onClose();
+                                                } else {
+                                                    error(
+                                                        t(
+                                                            "views.pipelines.io.feedback.error_creation",
+                                                        ),
+                                                    );
+                                                }
+                                            });
+                                        break;
+                                }
+                            }}
+                        >
+                            {t("common.action.create")}
+                        </Button>
+                    </Group>
+                </Stack>
+            )}
         </Modal>
     );
 }

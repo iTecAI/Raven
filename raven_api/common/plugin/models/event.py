@@ -78,4 +78,9 @@ class ResourceUpdateEvent(BaseEvent):
     entity_id: str
 
 
+@EVENTS.register("pipeline.io.edit")
+class PipelineIOUpdateEvent(BaseEvent):
+    path: Literal["pipeline.io.edit"] = "pipeline.io.edit"
+
+
 EVENT_TYPES = ResourceUpdateEvent

@@ -1,3 +1,4 @@
+import { ListFieldRenderer } from "./listField";
 import { NumberFieldRenderer } from "./numberField";
 import { SelectFieldRenderer } from "./selectField";
 import { StringFieldRenderer } from "./stringField";
@@ -14,4 +15,5 @@ export const FieldRenderers: { [key: string]: IOFieldRenderer<any> } = {
     number: NumberFieldRenderer,
     switch: SwitchFieldRenderer,
     select: SelectFieldRenderer,
+    list: ListFieldRenderer,
 };

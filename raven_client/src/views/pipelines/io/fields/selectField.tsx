@@ -24,7 +24,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { SelectField } from "../../../../types/backend/pipeline";
 import { FieldCreationProps, IOFieldRenderer } from "./types";
-import { MetaFields } from "./util";
+import { EditorWrapper } from "./util";
 import { useState } from "react";
 import { isString } from "lodash";
 import { useDisclosure } from "@mantine/hooks";
@@ -37,16 +37,11 @@ function SelectFieldEditor(props: FieldCreationProps<SelectField>) {
         useDisclosure(false);
 
     return (
-        <Stack gap="xs">
-            <Group gap="sm">
-                <IconSelect />
-                <Text>{t("util.pipelines.io.field.select.title")}</Text>
-            </Group>
-            <MetaFields
-                value={props.value}
-                setValue={props.setValue}
-                fields={props.fields}
-            />
+        <EditorWrapper
+            {...props}
+            title={t("util.pipelines.io.field.select.title")}
+            icon={<IconSelect />}
+        >
             {props.value.multiple ? (
                 <MultiSelect
                     clearable
@@ -246,7 +241,7 @@ function SelectFieldEditor(props: FieldCreationProps<SelectField>) {
                     </Popover>
                 </Stack>
             </Fieldset>
-        </Stack>
+        </EditorWrapper>
     );
 }
 

@@ -10,6 +10,7 @@ export type FieldCreationProps<T extends IOFieldTypes> = {
     value: FieldCreationFields<T>;
     setValue: (value: Partial<FieldCreationFields<T>>) => void;
     fields: Omit<IOFieldTypes, "value">[];
+    collapsed: boolean;
 };
 export type IOFieldRenderer<T extends IOFieldTypes> = {
     editor: (props: FieldCreationProps<T>) => ReactNode;

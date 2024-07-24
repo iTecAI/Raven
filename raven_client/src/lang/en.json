@@ -168,6 +168,11 @@
                 "label": "Option Label"
               }
             }
+          },
+          "list": {
+            "title": "List Field",
+            "suggestions": "Suggestions",
+            "max_length": "Max Items"
           }
         },
         "meta": {

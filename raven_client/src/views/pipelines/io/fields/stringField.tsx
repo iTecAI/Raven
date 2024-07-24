@@ -1,7 +1,6 @@
 import {
     Group,
     NumberInput,
-    Stack,
     Switch,
     Text,
     Textarea,
@@ -9,7 +8,7 @@ import {
 } from "@mantine/core";
 import { StringField } from "../../../../types/backend/pipeline";
 import { FieldCreationProps, IOFieldRenderer } from "./types";
-import { MetaFields } from "./util";
+import { EditorWrapper } from "./util";
 import { useTranslation } from "react-i18next";
 import {
     IconForms,
@@ -22,16 +21,11 @@ import { isNumber } from "lodash";
 function StringFieldEditor(props: FieldCreationProps<StringField>) {
     const { t } = useTranslation();
     return (
-        <Stack gap="xs">
-            <Group gap="sm">
-                <IconLetterCase />
-                <Text>{t("util.pipelines.io.field.string.title")}</Text>
-            </Group>
-            <MetaFields
-                value={props.value}
-                setValue={props.setValue}
-                fields={props.fields}
-            />
+        <EditorWrapper
+            {...props}
+            title={t("util.pipelines.io.field.string.title")}
+            icon={<IconLetterCase />}
+        >
             {props.value.multiline ? (
                 <Textarea
                     leftSection={<IconForms size={20} />}
@@ -78,7 +72,7 @@ function StringFieldEditor(props: FieldCreationProps<StringField>) {
                     }
                 />
             </Group>
-        </Stack>
+        </EditorWrapper>
     );
 }
 

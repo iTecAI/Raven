@@ -1,11 +1,4 @@
-import {
-    Stack,
-    Group,
-    Text,
-    NumberInput,
-    Switch,
-    Divider,
-} from "@mantine/core";
+import { Group, Text, NumberInput, Switch, Divider } from "@mantine/core";
 import {
     IconForms,
     IconMathEqualGreater,
@@ -15,22 +8,17 @@ import {
 import { useTranslation } from "react-i18next";
 import { NumberField } from "../../../../types/backend/pipeline";
 import { FieldCreationProps, IOFieldRenderer } from "./types";
-import { MetaFields } from "./util";
+import { EditorWrapper } from "./util";
 import { isNumber } from "lodash";
 
 function NumberFieldEditor(props: FieldCreationProps<NumberField>) {
     const { t } = useTranslation();
     return (
-        <Stack gap="xs">
-            <Group gap="sm">
-                <IconNumber />
-                <Text>{t("util.pipelines.io.field.number.title")}</Text>
-            </Group>
-            <MetaFields
-                value={props.value}
-                setValue={props.setValue}
-                fields={props.fields}
-            />
+        <EditorWrapper
+            {...props}
+            title={t("util.pipelines.io.field.number.title")}
+            icon={<IconNumber />}
+        >
             <NumberInput
                 value={props.value.default_value ?? ""}
                 onChange={(value) =>
@@ -86,7 +74,7 @@ function NumberFieldEditor(props: FieldCreationProps<NumberField>) {
                     />
                 </Group>
             </Group>
-        </Stack>
+        </EditorWrapper>
     );
 }
 

@@ -29,6 +29,7 @@ import {
     IconArticle,
     IconCalendarClock,
     IconChevronDown,
+    IconChevronUp,
     IconClick,
     IconColorSwatch,
     IconLetterCase,
@@ -44,7 +45,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, ReactNode, useCallback } from "react";
 import { useForm } from "@mantine/form";
 import { IconSelector } from "../../../components/IconSelector";
-import { useSetState } from "@mantine/hooks";
+import { useDisclosure, useSetState } from "@mantine/hooks";
 import { FieldRenderers } from "./fields";
 
 type ExtrasProps<T = any> = {
@@ -207,24 +208,34 @@ function DataEntryFieldItem({
     field: Omit<IOFieldTypes, "value">;
 }) {
     const EditorElement = FieldRenderers[field.type]?.editor;
+    const [collapsed, { toggle: toggleCollapsed }] = useDisclosure(false);
     return (
         <Paper className="extras-item data-entry-field-item paper-light" p="sm">
-            <ActionIcon
-                variant="transparent"
-                className="remove-item"
-                color="gray"
-                onClick={() =>
-                    setValue((current) => ({
-                        fields: (current.fields ?? []).filter(
-                            (v) => v.key !== field.key,
-                        ),
-                    }))
-                }
-            >
-                <IconX />
-            </ActionIcon>
+            <Group gap="xs" className="field-actions">
+                <ActionIcon
+                    variant="transparent"
+                    color="gray"
+                    onClick={toggleCollapsed}
+                >
+                    {collapsed ? <IconChevronDown /> : <IconChevronUp />}
+                </ActionIcon>
+                <ActionIcon
+                    variant="transparent"
+                    color="gray"
+                    onClick={() =>
+                        setValue((current) => ({
+                            fields: (current.fields ?? []).filter(
+                                (v) => v.key !== field.key,
+                            ),
+                        }))
+                    }
+                >
+                    <IconX />
+                </ActionIcon>
+            </Group>
             {EditorElement && (
                 <EditorElement
+                    collapsed={collapsed}
                     type={field.type}
                     fields={value.fields ?? []}
                     value={field}

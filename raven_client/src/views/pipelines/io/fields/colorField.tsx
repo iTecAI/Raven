@@ -57,6 +57,7 @@ function ColorFieldOutput(props: IORenderOutputProps<ColorField>) {
             value={props.field.value ?? ""}
             readOnly
             label={props.field.label}
+            variant="filled"
         />
     );
 }

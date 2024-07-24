@@ -7,6 +7,7 @@ import {
     Menu,
     Paper,
     ScrollArea,
+    SimpleGrid,
     Stack,
     Text,
     TextInput,
@@ -15,11 +16,13 @@ import {
     IconChevronDown,
     IconClick,
     IconCopy,
+    IconDeviceFloppy,
     IconDotsVertical,
     IconForms,
     IconPencil,
     IconSettings,
     IconTrashFilled,
+    IconX,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { CreateIOModal } from "./CreateIOModal";
@@ -35,6 +38,7 @@ import { useEvent } from "../../../util/events";
 import { EditIOModal } from "./EditIOModal";
 import { useSetState } from "@mantine/hooks";
 import { FieldRenderers } from "./fields";
+import { isEqual } from "lodash";
 
 function TriggerEntryState({
     entry,
@@ -74,33 +78,80 @@ function DataEntryState({
         "pipelines.io.activate": boolean | null;
     };
 }) {
-    //const { t } = useTranslation();
+    const { t } = useTranslation();
     const [fieldValues, setFieldValues] = useSetState<{ [key: string]: any }>(
         entry.fields.reduce(
             (prev, cur) => ({ ...prev, [cur.key]: cur.value }),
             {},
         ),
     );
+    const savedValues = useMemo(
+        () =>
+            entry.fields.reduce(
+                (prev, cur) => ({ ...prev, [cur.key]: cur.value }),
+                {},
+            ),
+        [entry.fields],
+    );
     return (
         <Stack gap="sm">
-            {entry.fields.map((field) => {
-                if (scopes["pipelines.io.activate"]) {
-                    const Field = FieldRenderers[field.type].render.input;
-                    return (
-                        <Field
-                            key={field.key}
-                            field={field}
-                            value={fieldValues[field.key]}
-                            onChange={(value) =>
-                                setFieldValues({ [field.key]: value })
-                            }
-                        />
-                    );
-                } else {
-                    const Field = FieldRenderers[field.type].render.output;
-                    return <Field key={field.key} field={field} />;
-                }
-            })}
+            <SimpleGrid
+                spacing="sm"
+                verticalSpacing="sm"
+                cols={{
+                    base: 1,
+                    md: Math.min(2, entry.fields.length),
+                    lg: Math.min(3, entry.fields.length),
+                }}
+            >
+                {entry.fields.map((field) => {
+                    if (scopes["pipelines.io.activate"]) {
+                        const Field = FieldRenderers[field.type].render.input;
+                        return (
+                            <Field
+                                key={field.key}
+                                field={field}
+                                value={fieldValues[field.key]}
+                                onChange={(value) =>
+                                    setFieldValues({ [field.key]: value })
+                                }
+                            />
+                        );
+                    } else {
+                        const Field = FieldRenderers[field.type].render.output;
+                        return <Field key={field.key} field={field} />;
+                    }
+                })}
+            </SimpleGrid>
+            <Group gap="sm" justify="end">
+                <Button
+                    justify="space-between"
+                    leftSection={<IconX size={20} />}
+                    variant="light"
+                    color="gray"
+                    disabled={isEqual(savedValues, fieldValues)}
+                    onClick={() =>
+                        setFieldValues(
+                            entry.fields.reduce(
+                                (prev, cur) => ({
+                                    ...prev,
+                                    [cur.key]: cur.value,
+                                }),
+                                {},
+                            ),
+                        )
+                    }
+                >
+                    {t("common.action.cancel")}
+                </Button>
+                <Button
+                    justify="space-between"
+                    leftSection={<IconDeviceFloppy size={20} />}
+                    disabled={isEqual(savedValues, fieldValues)}
+                >
+                    {t("common.action.save")}
+                </Button>
+            </Group>
         </Stack>
     );
 }

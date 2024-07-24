@@ -23,7 +23,12 @@ import {
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { SelectField } from "../../../../types/backend/pipeline";
-import { FieldCreationProps, IOFieldRenderer } from "./types";
+import {
+    FieldCreationProps,
+    IOFieldRenderer,
+    IORenderInputProps,
+    IORenderOutputProps,
+} from "./types";
 import { EditorWrapper } from "./util";
 import { useState } from "react";
 import { isString } from "lodash";
@@ -245,10 +250,92 @@ function SelectFieldEditor(props: FieldCreationProps<SelectField>) {
     );
 }
 
+function SelectFieldInput(props: IORenderInputProps<SelectField>) {
+    if (props.field.multiple) {
+        return (
+            <MultiSelect
+                data={props.field.options}
+                value={
+                    props.value
+                        ? isString(props.value)
+                            ? [props.value]
+                            : props.value
+                        : []
+                }
+                onChange={props.onChange}
+                clearable
+                searchable
+                leftSection={<IconSelect size={20} />}
+                label={props.field.label}
+            />
+        );
+    } else {
+        return (
+            <Select
+                data={props.field.options}
+                value={
+                    props.value
+                        ? isString(props.value)
+                            ? props.value
+                            : props.value[0] ?? null
+                        : null
+                }
+                onChange={props.onChange}
+                clearable
+                searchable
+                leftSection={<IconSelect size={20} />}
+                label={props.field.label}
+            />
+        );
+    }
+}
+
+function SelectFieldOutput(props: IORenderOutputProps<SelectField>) {
+    if (props.field.multiple) {
+        return (
+            <MultiSelect
+                data={props.field.options}
+                value={
+                    props.field.value
+                        ? isString(props.field.value)
+                            ? [props.field.value]
+                            : props.field.value
+                        : []
+                }
+                readOnly
+                clearable
+                searchable
+                leftSection={<IconSelect size={20} />}
+                label={props.field.label}
+                variant="filled"
+            />
+        );
+    } else {
+        return (
+            <Select
+                data={props.field.options}
+                value={
+                    props.field.value
+                        ? isString(props.field.value)
+                            ? props.field.value
+                            : props.field.value[0] ?? null
+                        : null
+                }
+                readOnly
+                variant="filled"
+                clearable
+                searchable
+                leftSection={<IconSelect size={20} />}
+                label={props.field.label}
+            />
+        );
+    }
+}
+
 export const SelectFieldRenderer: IOFieldRenderer<SelectField> = {
     editor: SelectFieldEditor,
     render: {
-        input: () => <></>,
-        output: () => <></>,
+        input: SelectFieldInput,
+        output: SelectFieldOutput,
     },
 };

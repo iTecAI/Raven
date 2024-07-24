@@ -7,7 +7,12 @@ import {
     TextInput,
 } from "@mantine/core";
 import { StringField } from "../../../../types/backend/pipeline";
-import { FieldCreationProps, IOFieldRenderer } from "./types";
+import {
+    FieldCreationProps,
+    IOFieldRenderer,
+    IORenderInputProps,
+    IORenderOutputProps,
+} from "./types";
 import { EditorWrapper } from "./util";
 import { useTranslation } from "react-i18next";
 import {
@@ -76,10 +81,63 @@ function StringFieldEditor(props: FieldCreationProps<StringField>) {
     );
 }
 
+function StringFieldInput(props: IORenderInputProps<StringField>) {
+    if (props.field.multiline) {
+        return (
+            <Textarea
+                autosize
+                maxRows={6}
+                leftSection={<IconLetterCase size={20} />}
+                value={props.value ?? ""}
+                onChange={(ev) => props.onChange(ev.target.value)}
+                label={props.field.label}
+                maxLength={props.field.max_length ?? undefined}
+            />
+        );
+    } else {
+        return (
+            <TextInput
+                leftSection={<IconLetterCase size={20} />}
+                value={props.value ?? ""}
+                onChange={(ev) => props.onChange(ev.target.value)}
+                label={props.field.label}
+                maxLength={props.field.max_length ?? undefined}
+            />
+        );
+    }
+}
+
+function StringFieldOutput(props: IORenderOutputProps<StringField>) {
+    if (props.field.multiline) {
+        return (
+            <Textarea
+                autosize
+                maxRows={6}
+                leftSection={<IconLetterCase size={20} />}
+                value={props.field.value ?? ""}
+                label={props.field.label}
+                maxLength={props.field.max_length ?? undefined}
+                readOnly
+                variant="filled"
+            />
+        );
+    } else {
+        return (
+            <TextInput
+                leftSection={<IconLetterCase size={20} />}
+                value={props.field.value ?? ""}
+                label={props.field.label}
+                maxLength={props.field.max_length ?? undefined}
+                variant="filled"
+            />
+        );
+    }
+}
+
 export const StringFieldRenderer: IOFieldRenderer<StringField> = {
     editor: StringFieldEditor,
     render: {
-        input: () => <></>,
-        output: () => <></>,
+        input: StringFieldInput,
+        output: StringFieldOutput,
     },
 };

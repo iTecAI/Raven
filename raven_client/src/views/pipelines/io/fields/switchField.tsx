@@ -2,7 +2,12 @@ import { Group, Text, Switch } from "@mantine/core";
 import { IconToggleRightFilled } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { SwitchField } from "../../../../types/backend/pipeline";
-import { FieldCreationProps, IOFieldRenderer } from "./types";
+import {
+    FieldCreationProps,
+    IOFieldRenderer,
+    IORenderInputProps,
+    IORenderOutputProps,
+} from "./types";
 import { EditorWrapper } from "./util";
 
 function SwitchFieldEditor(props: FieldCreationProps<SwitchField>) {
@@ -28,10 +33,31 @@ function SwitchFieldEditor(props: FieldCreationProps<SwitchField>) {
     );
 }
 
+function SwitchFieldInput(props: IORenderInputProps<SwitchField>) {
+    return (
+        <Group gap="sm" justify="space-between">
+            <Text>{props.field.label}</Text>
+            <Switch
+                checked={props.value ?? false}
+                onClick={() => props.onChange(!props.value)}
+            />
+        </Group>
+    );
+}
+
+function SwitchFieldOutput(props: IORenderOutputProps<SwitchField>) {
+    return (
+        <Group gap="sm" justify="space-between">
+            <Text>{props.field.label}</Text>
+            <Switch checked={props.field.value ?? false} readOnly />
+        </Group>
+    );
+}
+
 export const SwitchFieldRenderer: IOFieldRenderer<SwitchField> = {
     editor: SwitchFieldEditor,
     render: {
-        input: () => <></>,
-        output: () => <></>,
+        input: SwitchFieldInput,
+        output: SwitchFieldOutput,
     },
 };

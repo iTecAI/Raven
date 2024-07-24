@@ -7,7 +7,12 @@ import {
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { NumberField } from "../../../../types/backend/pipeline";
-import { FieldCreationProps, IOFieldRenderer } from "./types";
+import {
+    FieldCreationProps,
+    IOFieldRenderer,
+    IORenderInputProps,
+    IORenderOutputProps,
+} from "./types";
 import { EditorWrapper } from "./util";
 import { isNumber } from "lodash";
 
@@ -78,10 +83,39 @@ function NumberFieldEditor(props: FieldCreationProps<NumberField>) {
     );
 }
 
+function NumberFieldInput(props: IORenderInputProps<NumberField>) {
+    return (
+        <NumberInput
+            label={props.field.label}
+            value={props.value ?? ""}
+            onChange={(value) =>
+                isNumber(value) ? props.onChange(value) : props.onChange(null)
+            }
+            allowDecimal={props.field.decimals}
+            allowNegative={props.field.negatives}
+            min={props.field.min ?? undefined}
+            max={props.field.max ?? undefined}
+            leftSection={<IconNumber size={20} />}
+        />
+    );
+}
+
+function NumberFieldOutput(props: IORenderOutputProps<NumberField>) {
+    return (
+        <NumberInput
+            label={props.field.label}
+            value={props.field.value ?? ""}
+            readOnly
+            variant="filled"
+            leftSection={<IconNumber size={20} />}
+        />
+    );
+}
+
 export const NumberFieldRenderer: IOFieldRenderer<NumberField> = {
     editor: NumberFieldEditor,
     render: {
-        input: () => <></>,
-        output: () => <></>,
+        input: NumberFieldInput,
+        output: NumberFieldOutput,
     },
 };

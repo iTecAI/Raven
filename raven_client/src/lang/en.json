@@ -10,7 +10,8 @@
     "action": {
       "cancel": "Cancel",
       "create": "Create",
-      "submit": "Submit"
+      "submit": "Submit",
+      "save": "Save"
     }
   },
   "errors": {

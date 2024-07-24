@@ -7,7 +7,12 @@ import {
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { ListField } from "../../../../types/backend/pipeline";
-import { FieldCreationProps, IOFieldRenderer } from "./types";
+import {
+    FieldCreationProps,
+    IOFieldRenderer,
+    IORenderInputProps,
+    IORenderOutputProps,
+} from "./types";
 import { EditorWrapper } from "./util";
 import { isNumber } from "lodash";
 
@@ -52,10 +57,39 @@ function ListFieldEditor(props: FieldCreationProps<ListField>) {
     );
 }
 
+function ListFieldInput(props: IORenderInputProps<ListField>) {
+    return (
+        <TagsInput
+            maxTags={props.field.max_length ?? undefined}
+            data={props.field.suggestions ?? undefined}
+            allowDuplicates
+            value={props.value ?? []}
+            onChange={props.onChange}
+            label={props.field.label}
+            leftSection={<IconTagsFilled size={20} />}
+        />
+    );
+}
+
+function ListFieldOutput(props: IORenderOutputProps<ListField>) {
+    return (
+        <TagsInput
+            maxTags={props.field.max_length ?? undefined}
+            data={props.field.suggestions ?? undefined}
+            allowDuplicates
+            value={props.field.value ?? []}
+            readOnly
+            label={props.field.label}
+            leftSection={<IconTagsFilled size={20} />}
+            variant="filled"
+        />
+    );
+}
+
 export const ListFieldRenderer: IOFieldRenderer<ListField> = {
     editor: ListFieldEditor,
     render: {
-        input: () => <></>,
-        output: () => <></>,
+        input: ListFieldInput,
+        output: ListFieldOutput,
     },
 };

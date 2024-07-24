@@ -6,7 +6,12 @@ import {
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { DatetimeField } from "../../../../types/backend/pipeline";
-import { FieldCreationProps, IOFieldRenderer } from "./types";
+import {
+    FieldCreationProps,
+    IOFieldRenderer,
+    IORenderInputProps,
+    IORenderOutputProps,
+} from "./types";
 import { EditorWrapper } from "./util";
 import { DatePickerInput, DateTimePicker, TimeInput } from "@mantine/dates";
 import { Group, SegmentedControl, Text } from "@mantine/core";
@@ -112,10 +117,95 @@ function DatetimeFieldEditor(props: FieldCreationProps<DatetimeField>) {
     );
 }
 
+function DatetimeFieldInput(props: IORenderInputProps<DatetimeField>) {
+    switch (props.field.mode) {
+        case "date":
+            return (
+                <DatePickerInput
+                    value={props.value ? new Date(props.value) : null}
+                    onChange={(value) =>
+                        props.onChange(value ? value.toISOString() : null)
+                    }
+                    label={props.field.label}
+                    leftSection={<IconCalendar size={20} />}
+                    valueFormat="MM/DD/YYYY"
+                />
+            );
+        case "datetime":
+            return (
+                <DateTimePicker
+                    value={props.value ? new Date(props.value) : null}
+                    onChange={(value) =>
+                        props.onChange(value ? value.toISOString() : null)
+                    }
+                    label={props.field.label}
+                    leftSection={<IconCalendarClock size={20} />}
+                    valueFormat="MM/DD/YYYY hh:mm A"
+                />
+            );
+        case "time":
+            return (
+                <TimeInput
+                    value={props.value ?? ""}
+                    onChange={(event) =>
+                        props.onChange(
+                            event.target.value.length > 0
+                                ? event.target.value
+                                : null,
+                        )
+                    }
+                    label={props.field.label}
+                    leftSection={<IconClock size={20} />}
+                />
+            );
+    }
+}
+
+function DatetimeFieldOutput(props: IORenderOutputProps<DatetimeField>) {
+    switch (props.field.mode) {
+        case "date":
+            return (
+                <DatePickerInput
+                    value={
+                        props.field.value ? new Date(props.field.value) : null
+                    }
+                    readOnly
+                    label={props.field.label}
+                    leftSection={<IconCalendar size={20} />}
+                    valueFormat="MM/DD/YYYY"
+                    variant="filled"
+                />
+            );
+        case "datetime":
+            return (
+                <DateTimePicker
+                    value={
+                        props.field.value ? new Date(props.field.value) : null
+                    }
+                    readOnly
+                    label={props.field.label}
+                    leftSection={<IconCalendarClock size={20} />}
+                    valueFormat="MM/DD/YYYY hh:mm A"
+                    variant="filled"
+                />
+            );
+        case "time":
+            return (
+                <TimeInput
+                    value={props.field.value ?? ""}
+                    readOnly
+                    label={props.field.label}
+                    leftSection={<IconClock size={20} />}
+                    variant="filled"
+                />
+            );
+    }
+}
+
 export const DatetimeFieldRenderer: IOFieldRenderer<DatetimeField> = {
     editor: DatetimeFieldEditor,
     render: {
-        input: () => <></>,
-        output: () => <></>,
+        input: DatetimeFieldInput,
+        output: DatetimeFieldOutput,
     },
 };

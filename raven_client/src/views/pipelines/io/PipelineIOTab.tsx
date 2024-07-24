@@ -1,4 +1,5 @@
 import {
+    Accordion,
     ActionIcon,
     Button,
     Center,
@@ -16,19 +17,93 @@ import {
     IconCopy,
     IconDotsVertical,
     IconForms,
-    IconInfoCircle,
     IconPencil,
-    IconPlayerPlayFilled,
+    IconSettings,
     IconTrashFilled,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { CreateIOModal } from "./CreateIOModal";
-import { useCallback, useEffect, useState } from "react";
-import { PipelineIO } from "../../../types/backend/pipeline";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import {
+    PipelineDataIO,
+    PipelineIO,
+    PipelineTriggerIO,
+} from "../../../types/backend/pipeline";
 import { PipelineIOMixin, useApi, useScopeMatch } from "../../../util/api";
 import { DynamicIcon } from "../../../components/DynamicIcon";
 import { useEvent } from "../../../util/events";
 import { EditIOModal } from "./EditIOModal";
+import { useSetState } from "@mantine/hooks";
+import { FieldRenderers } from "./fields";
+
+function TriggerEntryState({
+    entry,
+    scopes,
+}: {
+    entry: PipelineTriggerIO;
+    scopes: {
+        "pipelines.io.view": boolean | null;
+        "pipelines.io.manage": boolean | null;
+        "pipelines.io.activate": boolean | null;
+    };
+}) {
+    const { t } = useTranslation();
+    return (
+        <Group gap="sm" justify="space-between">
+            <Text>{t("views.pipelines.io.items.trigger.activate")}</Text>
+            <Button
+                leftSection={
+                    <DynamicIcon icon={entry.icon ?? "player-play-filled"} />
+                }
+                disabled={!scopes["pipelines.io.activate"]}
+            >
+                {entry.label ?? entry.name}
+            </Button>
+        </Group>
+    );
+}
+
+function DataEntryState({
+    entry,
+    scopes,
+}: {
+    entry: PipelineDataIO;
+    scopes: {
+        "pipelines.io.view": boolean | null;
+        "pipelines.io.manage": boolean | null;
+        "pipelines.io.activate": boolean | null;
+    };
+}) {
+    //const { t } = useTranslation();
+    const [fieldValues, setFieldValues] = useSetState<{ [key: string]: any }>(
+        entry.fields.reduce(
+            (prev, cur) => ({ ...prev, [cur.key]: cur.value }),
+            {},
+        ),
+    );
+    return (
+        <Stack gap="sm">
+            {entry.fields.map((field) => {
+                if (scopes["pipelines.io.activate"]) {
+                    const Field = FieldRenderers[field.type].render.input;
+                    return (
+                        <Field
+                            key={field.key}
+                            field={field}
+                            value={fieldValues[field.key]}
+                            onChange={(value) =>
+                                setFieldValues({ [field.key]: value })
+                            }
+                        />
+                    );
+                } else {
+                    const Field = FieldRenderers[field.type].render.output;
+                    return <Field key={field.key} field={field} />;
+                }
+            })}
+        </Stack>
+    );
+}
 
 function IOEntryItem({
     entry,
@@ -45,41 +120,34 @@ function IOEntryItem({
 }) {
     const { t } = useTranslation();
     const { methods } = useApi(PipelineIOMixin);
+
+    const StateElement: (props: {
+        entry: PipelineIO;
+        scopes: object;
+    }) => ReactNode = useMemo(() => {
+        switch (entry.type) {
+            case "trigger":
+                return TriggerEntryState;
+            case "data":
+                return DataEntryState;
+        }
+    }, [entry.id, entry.type]) as any;
+
     return (
         <Paper className="io-entry-item paper-light" p="sm">
-            <Menu position="bottom-end" withArrow>
-                <Menu.Target>
-                    <ActionIcon
-                        size="sm"
-                        variant="transparent"
-                        color="gray"
-                        className="entry-actions"
-                    >
-                        <IconDotsVertical />
-                    </ActionIcon>
-                </Menu.Target>
-                <Menu.Dropdown>
-                    <Menu.Item pl="xs">
-                        <Group gap="sm">
-                            <IconInfoCircle size={18} />
-                            <Text size="sm">
-                                {t("views.pipelines.io.items.menu.info")}
-                            </Text>
-                        </Group>
-                    </Menu.Item>
-                    {scopes["pipelines.io.activate"] && (
-                        <Menu.Item pl="xs">
-                            <Group gap="sm">
-                                <IconPlayerPlayFilled size={18} />
-                                <Text size="sm">
-                                    {t(
-                                        "views.pipelines.io.items.menu.activate",
-                                    )}
-                                </Text>
-                            </Group>
-                        </Menu.Item>
-                    )}
-                    {scopes["pipelines.io.manage"] && (
+            {scopes["pipelines.io.manage"] && (
+                <Menu position="bottom-end" withArrow>
+                    <Menu.Target>
+                        <ActionIcon
+                            size="sm"
+                            variant="transparent"
+                            color="gray"
+                            className="entry-actions"
+                        >
+                            <IconDotsVertical />
+                        </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
                         <Menu.Item pl="xs" onClick={onEdit}>
                             <Group gap="sm">
                                 <IconPencil size={18} />
@@ -88,8 +156,6 @@ function IOEntryItem({
                                 </Text>
                             </Group>
                         </Menu.Item>
-                    )}
-                    {scopes["pipelines.io.manage"] && (
                         <Menu.Item
                             pl="xs"
                             onClick={() => methods.duplicate_io(entry.id)}
@@ -101,8 +167,6 @@ function IOEntryItem({
                                 </Text>
                             </Group>
                         </Menu.Item>
-                    )}
-                    {scopes["pipelines.io.manage"] && (
                         <Menu.Item
                             pl="xs"
                             onClick={() => methods.delete_io(entry.id)}
@@ -114,9 +178,9 @@ function IOEntryItem({
                                 </Text>
                             </Group>
                         </Menu.Item>
-                    )}
-                </Menu.Dropdown>
-            </Menu>
+                    </Menu.Dropdown>
+                </Menu>
+            )}
             <Stack gap="sm">
                 <Group gap="sm" className="entry-title" wrap="nowrap">
                     <DynamicIcon
@@ -141,6 +205,19 @@ function IOEntryItem({
                         </Center>
                     )}
                 </Paper>
+                <Accordion variant="separated">
+                    <Accordion.Item value="state">
+                        <Accordion.Control icon={<IconSettings />}>
+                            {t("views.pipelines.io.items.state")}
+                        </Accordion.Control>
+                        <Accordion.Panel>
+                            <StateElement
+                                entry={entry as any}
+                                scopes={scopes}
+                            />
+                        </Accordion.Panel>
+                    </Accordion.Item>
+                </Accordion>
             </Stack>
         </Paper>
     );

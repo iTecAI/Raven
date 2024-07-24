@@ -2,7 +2,12 @@ import { Group, Text, ColorInput, Switch } from "@mantine/core";
 import { IconColorSwatch } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { ColorField } from "../../../../types/backend/pipeline";
-import { FieldCreationProps, IOFieldRenderer } from "./types";
+import {
+    FieldCreationProps,
+    IOFieldRenderer,
+    IORenderInputProps,
+    IORenderOutputProps,
+} from "./types";
 import { EditorWrapper } from "./util";
 
 function ColorFieldEditor(props: FieldCreationProps<ColorField>) {
@@ -34,10 +39,32 @@ function ColorFieldEditor(props: FieldCreationProps<ColorField>) {
     );
 }
 
+function ColorFieldInput(props: IORenderInputProps<ColorField>) {
+    return (
+        <ColorInput
+            format={props.field.alpha ? "hexa" : "hex"}
+            value={props.value ?? ""}
+            onChange={props.onChange}
+            label={props.field.label}
+        />
+    );
+}
+
+function ColorFieldOutput(props: IORenderOutputProps<ColorField>) {
+    return (
+        <ColorInput
+            format={props.field.alpha ? "hexa" : "hex"}
+            value={props.field.value ?? ""}
+            readOnly
+            label={props.field.label}
+        />
+    );
+}
+
 export const ColorFieldRenderer: IOFieldRenderer<ColorField> = {
     editor: ColorFieldEditor,
     render: {
-        input: () => <></>,
-        output: () => <></>,
+        input: ColorFieldInput,
+        output: ColorFieldOutput,
     },
 };

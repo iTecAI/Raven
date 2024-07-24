@@ -117,7 +117,11 @@
             "edit": "Edit",
             "copy": "Duplicate",
             "delete": "Delete"
-          }
+          },
+          "trigger": {
+            "activate": "Activate Trigger"
+          },
+          "state": "Item State"
         },
         "edit_modal": {
           "title": "Edit I/O Item: {{name}}"

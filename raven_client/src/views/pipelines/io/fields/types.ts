@@ -12,13 +12,21 @@ export type FieldCreationProps<T extends IOFieldTypes> = {
     fields: Omit<IOFieldTypes, "value">[];
     collapsed: boolean;
 };
+
+export type IORenderInputProps<T extends IOFieldTypes> = {
+    field: T;
+    value: T["value"] | null;
+    onChange: (value: T["value"] | null) => void;
+};
+
+export type IORenderOutputProps<T extends IOFieldTypes> = {
+    field: T;
+};
+
 export type IOFieldRenderer<T extends IOFieldTypes> = {
     editor: (props: FieldCreationProps<T>) => ReactNode;
     render: {
-        input: (props: {
-            field: T;
-            onChange: (value: T["value"] | null) => void;
-        }) => ReactNode;
-        output: (props: { field: T }) => ReactNode;
+        input: (props: IORenderInputProps<T>) => ReactNode;
+        output: (props: IORenderOutputProps<T>) => ReactNode;
     };
 };

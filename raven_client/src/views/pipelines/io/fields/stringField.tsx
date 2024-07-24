@@ -84,5 +84,8 @@ function StringFieldEditor(props: FieldCreationProps<StringField>) {
 
 export const StringFieldRenderer: IOFieldRenderer<StringField> = {
     editor: StringFieldEditor,
-    renderer: () => <></>,
+    render: {
+        input: () => <></>,
+        output: () => <></>,
+    },
 };

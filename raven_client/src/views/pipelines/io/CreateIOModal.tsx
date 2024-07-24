@@ -15,9 +15,15 @@ import {
     TextInput,
 } from "@mantine/core";
 import {
+    ColorField,
+    DatetimeField,
     IOFieldTypes,
+    ListField,
+    NumberField,
     PipelineIO,
+    SelectField,
     StringField,
+    SwitchField,
 } from "../../../types/backend/pipeline";
 import {
     IconArticle,
@@ -54,7 +60,9 @@ function AddDataFieldMenu({
     const { t } = useTranslation();
     const addItem = useCallback(
         <T extends IOFieldTypes>(
-            item: Omit<T, "value" | "key" | "label" | "default_value">,
+            item: Omit<T, "value" | "key" | "label" | "default_value"> & {
+                default_value?: T["default_value"] | null;
+            },
         ) => {
             setValue((current) => {
                 return {
@@ -63,7 +71,7 @@ function AddDataFieldMenu({
                         {
                             key: `field-${window.crypto.randomUUID().slice(0, 6)}`,
                             label: "New Field",
-                            default_value: null,
+                            default_value: item.default_value ?? null,
                             ...item,
                         },
                     ],
@@ -89,6 +97,7 @@ function AddDataFieldMenu({
                             type: "string",
                             multiline: false,
                             max_length: null,
+                            default_value: "",
                         })
                     }
                 >
@@ -96,32 +105,89 @@ function AddDataFieldMenu({
                         "views.pipelines.io.create_modal.extra.data.add_field.item.string",
                     )}
                 </Menu.Item>
-                <Menu.Item leftSection={<IconNumber size={20} />}>
+                <Menu.Item
+                    leftSection={<IconNumber size={20} />}
+                    onClick={() =>
+                        addItem<NumberField>({
+                            type: "number",
+                            decimals: true,
+                            negatives: true,
+                            min: null,
+                            max: null,
+                            default_value: 0,
+                        })
+                    }
+                >
                     {t(
                         "views.pipelines.io.create_modal.extra.data.add_field.item.number",
                     )}
                 </Menu.Item>
-                <Menu.Item leftSection={<IconToggleRightFilled size={20} />}>
+                <Menu.Item
+                    leftSection={<IconToggleRightFilled size={20} />}
+                    onClick={() =>
+                        addItem<SwitchField>({
+                            type: "switch",
+                            default_value: false,
+                        })
+                    }
+                >
                     {t(
                         "views.pipelines.io.create_modal.extra.data.add_field.item.switch",
                     )}
                 </Menu.Item>
-                <Menu.Item leftSection={<IconSelect size={20} />}>
+                <Menu.Item
+                    leftSection={<IconSelect size={20} />}
+                    onClick={() =>
+                        addItem<SelectField>({
+                            type: "select",
+                            options: [],
+                            multiple: false,
+                        })
+                    }
+                >
                     {t(
                         "views.pipelines.io.create_modal.extra.data.add_field.item.select",
                     )}
                 </Menu.Item>
-                <Menu.Item leftSection={<IconTagsFilled size={20} />}>
+                <Menu.Item
+                    leftSection={<IconTagsFilled size={20} />}
+                    onClick={() =>
+                        addItem<ListField>({
+                            type: "list",
+                            default_value: [],
+                            max_length: null,
+                            suggestions: [],
+                        })
+                    }
+                >
                     {t(
                         "views.pipelines.io.create_modal.extra.data.add_field.item.list",
                     )}
                 </Menu.Item>
-                <Menu.Item leftSection={<IconColorSwatch size={20} />}>
+                <Menu.Item
+                    leftSection={<IconColorSwatch size={20} />}
+                    onClick={() =>
+                        addItem<ColorField>({
+                            type: "color",
+                            default_value: null,
+                            alpha: false,
+                        })
+                    }
+                >
                     {t(
                         "views.pipelines.io.create_modal.extra.data.add_field.item.color",
                     )}
                 </Menu.Item>
-                <Menu.Item leftSection={<IconCalendarClock size={20} />}>
+                <Menu.Item
+                    leftSection={<IconCalendarClock size={20} />}
+                    onClick={() =>
+                        addItem<DatetimeField>({
+                            type: "datetime",
+                            default_value: null,
+                            mode: "datetime",
+                        })
+                    }
+                >
                     {t(
                         "views.pipelines.io.create_modal.extra.data.add_field.item.datetime",
                     )}

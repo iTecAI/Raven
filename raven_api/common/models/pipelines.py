@@ -46,12 +46,16 @@ class StringField(PipelineField[str]):
 class NumberField(PipelineField[int | float]):
     type: Literal["number"] = "number"
     decimals: bool = True
+    negatives: bool = True
     min: int | float | None = None
     max: int | float | None = None
 
     def validate(self, value: int | float | None) -> bool:
         if type(value) in [int, float]:
             if int(value) != value and not self.decimals:
+                return False
+
+            if value < 0 and not self.negatives:
                 return False
 
             if self.max != None and value > self.max:

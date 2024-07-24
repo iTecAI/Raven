@@ -14,6 +14,7 @@ export interface StringField extends BaseField<string> {
 export interface NumberField extends BaseField<number> {
     type: "number";
     decimals: boolean;
+    negatives: boolean;
     min: number | null;
     max: number | null;
 }
@@ -24,7 +25,7 @@ export interface SwitchField extends BaseField<boolean> {
 
 export interface SelectField extends BaseField<string | string[]> {
     type: "select";
-    options: (string | {label: string; value: string})[];
+    options: (string | { label: string; value: string })[];
     multiple: boolean;
 }
 
@@ -37,9 +38,9 @@ export interface ListField extends BaseField<string[]> {
 export interface ColorField extends BaseField<string> {
     type: "color";
     alpha: boolean;
-    rgb: [number, number, number] | [number, number, number, number];
-    hls: [number, number, number] | [number, number, number, number];
-    hsv: [number, number, number] | [number, number, number, number];
+    rgb?: [number, number, number] | [number, number, number, number];
+    hls?: [number, number, number] | [number, number, number, number];
+    hsv?: [number, number, number] | [number, number, number, number];
 }
 
 export interface DatetimeField extends BaseField<string> {

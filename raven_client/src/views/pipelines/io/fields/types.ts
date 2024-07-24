@@ -13,5 +13,11 @@ export type FieldCreationProps<T extends IOFieldTypes> = {
 };
 export type IOFieldRenderer<T extends IOFieldTypes> = {
     editor: (props: FieldCreationProps<T>) => ReactNode;
-    renderer: (props: { field: T }) => ReactNode;
+    render: {
+        input: (props: {
+            field: T;
+            onChange: (value: T["value"] | null) => void;
+        }) => ReactNode;
+        output: (props: { field: T }) => ReactNode;
+    };
 };

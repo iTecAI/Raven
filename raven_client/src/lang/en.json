@@ -145,6 +145,29 @@
             "title": "Text Field",
             "multiline": "Multiline",
             "max_length": "Max Length"
+          },
+          "number": {
+            "title": "Number Field",
+            "decimals": "Allow Decimals",
+            "negatives": "Allow Negatives",
+            "min": "Minimum",
+            "max": "Maximum"
+          },
+          "switch": {
+            "title": "Switch Field",
+            "multiple": "Allow Multiple"
+          },
+          "select": {
+            "title": "Selection Field",
+            "options": {
+              "title": "Edit Options",
+              "add": "Add Option",
+              "menu": {
+                "title": "Add Option",
+                "value": "Option Value",
+                "label": "Option Label"
+              }
+            }
           }
         },
         "meta": {

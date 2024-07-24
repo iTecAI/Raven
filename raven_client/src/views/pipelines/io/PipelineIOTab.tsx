@@ -90,7 +90,10 @@ function IOEntryItem({
                         </Menu.Item>
                     )}
                     {scopes["pipelines.io.manage"] && (
-                        <Menu.Item pl="xs">
+                        <Menu.Item
+                            pl="xs"
+                            onClick={() => methods.duplicate_io(entry.id)}
+                        >
                             <Group gap="sm">
                                 <IconCopy size={18} />
                                 <Text size="sm">

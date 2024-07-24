@@ -1,4 +1,5 @@
 from typing import Any, Literal
+from uuid import uuid4
 from litestar import Controller, delete, get, post
 from litestar.di import Provide
 from litestar.exceptions import *
@@ -131,4 +132,18 @@ class PipelineIOController(Controller):
         if io_obj == None:
             raise NotFoundException("Unknown IO ID")
         await io_obj.delete()
+        emitter("pipeline.io.edit", {}, scopes=["pipelines.io.*"])
+
+    @post(
+        "/{io_id:str}/copy",
+        guards=[guard_scoped("pipelines.io.manage")],
+        dependencies={"emitter": Provide(provide_event_emitter())},
+    )
+    async def duplicate_io_item(self, io_id: str, emitter: EmitterType) -> None:
+        io_obj = await PipelineIO.get(io_id, with_children=True)
+        if io_obj == None:
+            raise NotFoundException("Unknown IO ID")
+        io_obj.id = uuid4().hex
+        io_obj.name += " Copy"
+        await io_obj.save()
         emitter("pipeline.io.edit", {}, scopes=["pipelines.io.*"])

@@ -89,5 +89,14 @@ export function PipelineIOMixin<TBase extends MixinConstructor>(base: TBase) {
                 method: "delete",
             });
         }
+
+        public async duplicate_io(id: string): Promise<PipelineIO | null> {
+            return data(
+                await this.request<PipelineIO>(`/pipelines/io/${id}/copy`, {
+                    method: "post",
+                }),
+                null,
+            );
+        }
     };
 }

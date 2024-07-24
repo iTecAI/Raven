@@ -96,6 +96,13 @@ function DataEntryState({
             ),
         [entry.fields],
     );
+
+    useEffect(() => {
+        if (!isEqual(fieldValues, savedValues)) {
+            setFieldValues(savedValues);
+        }
+    }, [entry.fields]);
+
     return (
         <Stack gap="sm">
             <SimpleGrid
